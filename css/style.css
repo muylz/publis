@@ -218,3 +218,46 @@ body {
     position: absolute;
     border-radius: 50%;
 }
+/* STATS ROW LAYOUT */
+.stats-row {
+    display: flex;
+    gap: 40px;
+    margin-top: 10px;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #6272a4;
+    margin-bottom: 2px;
+    font-weight: 700;
+}
+
+.stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #f8f8f2;
+}
+
+/* Make the Score look special (Gold) */
+#score-counter {
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Animation when score increases */
+.score-bump {
+    transform: scale(1.5);
+    color: #fff !important; /* Flash white */
+}
+
+/* Hides the old standalone best-score class if it still exists */
+.best-score { display: none; }
