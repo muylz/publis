@@ -1,0 +1,220 @@
+:root {
+    /* Dracula Theme Colors */
+    --bg-center: #383447; 
+    --bg-edge: #181621;   
+    
+    --text-color: #f8f8f2;
+    --coin-size: 220px; 
+    
+    /* Coin Colors */
+    --green: #50fa7b; 
+    --green-dark: #008f30;
+    --red: #ff5555;   
+    --red-dark: #8f0000;
+    --gold: #f1fa8c;  
+    --silver-edge: #f8f8f2;
+    --silver-dark: #6272a4;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-edge);
+    background-image: radial-gradient(circle at center, var(--bg-center) 0%, var(--bg-edge) 100%);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+/* UI Layout */
+.ui-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 40px; 
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+/* LOGO STYLES */
+.logo-container {
+    margin-bottom: 30px;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.25)); 
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    width: 100%;
+}
+
+.app-logo {
+    width: 380px; 
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Clean, Heavy Font for the Logo */
+.logo-text {
+    font-family: 'Arial Black', 'Gadget', sans-serif;
+    font-weight: 900; 
+    font-size: 50px; 
+}
+
+.label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #bd93f9; 
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+#streak-counter {
+    font-size: 7rem;
+    font-weight: 900;
+    line-height: 0.9;
+    color: #fff;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    transition: color 0.2s ease; 
+}
+
+.best-score {
+    font-size: 1.1rem;
+    color: var(--gold);
+    font-weight: 600;
+    margin-top: 5px;
+    opacity: 0.9;
+    text-align: center;
+}
+
+.odds-container {
+    margin-top: 80px;
+    font-size: 0.8rem;
+    color: #6272a4;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.odds-value {
+    color: #fff;
+    font-weight: 700;
+}
+
+/* --- 3D COIN ENGINE --- */
+.scene {
+    width: var(--coin-size);
+    height: var(--coin-size);
+    min-width: var(--coin-size);
+    min-height: var(--coin-size);
+    aspect-ratio: 1 / 1; 
+    perspective: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.coin {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+/* THE STACK SYSTEM */
+.layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    backface-visibility: visible; 
+    outline: 1px solid transparent; 
+    -webkit-font-smoothing: antialiased;
+}
+
+.layer.edge {
+    background: var(--silver-edge);
+    border: 1px solid var(--silver-dark);
+    box-shadow: 0 0 0.5px var(--silver-dark); 
+}
+
+.layer.front {
+    background: radial-gradient(circle at 30% 30%, var(--green), var(--green-dark));
+    border: 4px solid rgba(255,255,255,0.3);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden; 
+}
+
+.layer.back {
+    background: radial-gradient(circle at 30% 30%, var(--red), var(--red-dark));
+    border: 4px solid rgba(255,255,255,0.3);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+}
+
+.layer svg {
+    width: 60%;
+    height: 60%;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+/* Animations */
+@keyframes pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0% { transform: translateY(0); }
+    25% { transform: translateY(-6px); }
+    75% { transform: translateY(6px); }
+    100% { transform: translateY(0); }
+}
+
+.pop-anim { animation: pop 0.25s ease-out; }
+.shake-anim { animation: shake 0.3s ease-in-out; }
+
+#particles {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 99;
+}
+.particle {
+    position: absolute;
+    border-radius: 50%;
+}
