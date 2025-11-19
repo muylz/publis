@@ -4,13 +4,12 @@ const THICKNESS_SPREAD = 0.6;
 
 // --- Game State ---
 let streak = 0;
-let best = localStorage.getItem('goodluck_best') || 0;
-bestElement.textContent = best;
 let isFlipping = false;
 let currentRotation = 0;
 
-// Update the UI immediately on load
-document.getElementById('best-counter').textContent = best;
+// --- CRITICAL FIX: Load Best Score on Startup ---
+// 1. Get score from storage. 2. If it doesn't exist, use 0.
+let best = localStorage.getItem('goodluck_best') || 0;
 
 // --- DOM ---
 const coinElement = document.getElementById('coin');
@@ -22,6 +21,9 @@ const particlesContainer = document.getElementById('particles');
 const headsTemplate = document.getElementById('heads-svg');
 const tailsTemplate = document.getElementById('tails-svg-clean');
 
+// --- Initialize UI with Saved Score ---
+bestElement.textContent = best;
+
 // --- 1. Build the Solid 3D Stack ---
 function buildCoin() {
     coinElement.innerHTML = '';
@@ -32,17 +34,14 @@ function buildCoin() {
         const currentZ = startZ + (i * THICKNESS_SPREAD);
         
         if (i === 0) {
-            // Back Face (Tails)
             layer.className = 'layer back';
             layer.appendChild(tailsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px) rotateX(180deg)`;
         } else if (i === LAYERS - 1) {
-            // Front Face (Heads)
             layer.className = 'layer front';
             layer.appendChild(headsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px)`;
         } else {
-            // Edge
             layer.className = 'layer edge';
             layer.style.transform = `translateZ(${currentZ}px)`;
         }
@@ -62,7 +61,6 @@ function playFlipSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
     
-    // Soft ASMR Click (Thock)
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     const filter = audioCtx.createBiquadFilter();
@@ -82,7 +80,6 @@ function playFlipSound() {
     osc.start(t);
     osc.stop(t + 0.15);
     
-    // High end snap
     const snapOsc = audioCtx.createOscillator();
     const snapGain = audioCtx.createGain();
     snapOsc.type = 'sine';
@@ -122,7 +119,6 @@ function playLoseSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
     
-    // Hollow Drop
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     const osc2 = audioCtx.createOscillator();
@@ -150,7 +146,6 @@ function playLoseSound() {
     osc2.stop(t + 0.7);
 }
 
-// --- 3. Visual FX ---
 function createParticles(x, y, color) {
     for(let i=0; i<15; i++) {
         const p = document.createElement('div');
@@ -177,7 +172,6 @@ function createParticles(x, y, color) {
     }
 }
 
-// --- 4. Game Logic ---
 function updateOdds(currentStreak) {
     const denominator = Math.pow(2, currentStreak + 1);
     oddsElement.textContent = denominator.toLocaleString();
@@ -199,7 +193,6 @@ function flipCoin() {
     
     let target = currentRotation + degrees;
     
-    // Vertical Flip Logic
     const currentMod = currentRotation % 360;
     const isCurrentlyHeads = (Math.abs(currentMod) < 1 || Math.abs(currentMod - 360) < 1);
 
@@ -227,21 +220,16 @@ function resolveFlip(isHeads) {
     if (isHeads) {
         streak++;
         
-        // Check for new High Score and Save it
+      
         if (streak > best) {
             best = streak;
             bestElement.textContent = best;
-            // This saves the score to the phone's storage
             localStorage.setItem('goodluck_best', best);
         }
         
         streakElement.textContent = streak;
-        
-        // Highlight GREEN on win
         streakElement.style.color = "var(--green)";
         streakElement.classList.add('pop-anim');
-        
-        // Play rising win sound
         playWinSound(streak);
         createParticles(cx, cy, 'var(--green)');
 
@@ -251,7 +239,6 @@ function resolveFlip(isHeads) {
         streak = 0;
         streakElement.textContent = 0;
         
-        // Highlight RED on loss
         streakElement.style.color = "var(--red)";
         document.body.classList.add('shake-anim');
         playLoseSound();
@@ -264,7 +251,6 @@ function resolveFlip(isHeads) {
     isFlipping = false;
 }
 
-// Interaction
 sceneElement.addEventListener('mousedown', () => {
     if(!isFlipping) coinElement.style.transform = `rotateX(${currentRotation}deg) scale(0.95)`;
 });
