@@ -4,9 +4,13 @@ const THICKNESS_SPREAD = 0.6;
 
 // --- Game State ---
 let streak = 0;
-let best = 0;
+let best = localStorage.getItem('goodluck_best') || 0;
+bestElement.textContent = best;
 let isFlipping = false;
 let currentRotation = 0;
+
+// Update the UI immediately on load
+document.getElementById('best-counter').textContent = best;
 
 // --- DOM ---
 const coinElement = document.getElementById('coin');
@@ -222,10 +226,15 @@ function resolveFlip(isHeads) {
 
     if (isHeads) {
         streak++;
+        
+        // Check for new High Score and Save it
         if (streak > best) {
             best = streak;
             bestElement.textContent = best;
+            // This saves the score to the phone's storage
+            localStorage.setItem('goodluck_best', best);
         }
+        
         streakElement.textContent = streak;
         
         // Highlight GREEN on win
