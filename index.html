@@ -12,9 +12,8 @@
 <body>
 
     <div class="ui-container">
-        <!-- CUSTOM LOGO -->
         <div class="logo-container">
-            <svg class="app-logo" viewBox="0 0 380 60" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+            <svg class="app-logo" viewBox="0 0 340 60" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" style="stop-color:#FFF8DC;stop-opacity:1" /> 
@@ -22,15 +21,14 @@
                         <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" /> 
                     </linearGradient>
                 </defs>
-                
-                <text x="40" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">G</text>
-                <text x="80" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">O</text>
-                <text x="120" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">O</text>
-                <text x="160" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">D</text>
-                <text x="220" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">L</text>
-                <text x="260" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">U</text>
-                <text x="300" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">C</text>
-                <text x="340" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">K</text>
+                <text x="30" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">G</text>
+                <text x="70" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">O</text>
+                <text x="110" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">O</text>
+                <text x="150" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">D</text>
+                <text x="205" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">L</text>
+                <text x="245" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">U</text>
+                <text x="285" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">C</text>
+                <text x="325" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">K</text>
             </svg>
         </div>
 
@@ -38,18 +36,11 @@
             <div class="label">Current Streak</div>
             <div id="streak-counter">0</div>
         </div>
-        
-        <!-- NEW STATS ROW -->
-        <div class="stats-row">
-            <div class="stat-box">
-                <div class="stat-label">Best</div>
-                <div class="stat-value" id="best-counter">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Score</div>
-                <div class="stat-value" id="score-counter">0</div>
-            </div>
-        </div>
+        <div class="best-score">Best: <span id="best-counter">0</span></div>
+    </div>
+
+    <div class="scene" id="scene">
+        <div class="coin" id="coin"></div>
     </div>
 
     <div class="odds-container">
@@ -58,7 +49,7 @@
 
     <div id="particles"></div>
 
-    <!-- Templates -->
+    <!-- Templates (MUST BE PRESENT FOR COIN TO APPEAR) -->
     <template id="heads-svg">
         <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" fill="none" stroke="white" stroke-width="2"/>

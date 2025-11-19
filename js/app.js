@@ -7,27 +7,25 @@ let streak = 0;
 let isFlipping = false;
 let currentRotation = 0;
 
-// Load Best Score & Total Score
-let best = parseInt(localStorage.getItem('goodluck_best')) || 0;
-let totalScore = parseInt(localStorage.getItem('goodluck_score')) || 0;
+// Load Best Score
+let best = localStorage.getItem('goodluck_best') || 0;
 
 // --- DOM ---
 const coinElement = document.getElementById('coin');
 const sceneElement = document.getElementById('scene');
 const streakElement = document.getElementById('streak-counter');
 const bestElement = document.getElementById('best-counter');
-const scoreElement = document.getElementById('score-counter');
 const oddsElement = document.getElementById('odds-counter');
 const particlesContainer = document.getElementById('particles');
 const headsTemplate = document.getElementById('heads-svg');
 const tailsTemplate = document.getElementById('tails-svg-clean');
 
-// --- Initialize UI ---
+// Init Best
 bestElement.textContent = best;
-scoreElement.textContent = totalScore.toLocaleString(); // Comma formatting (e.g., 1,024)
 
 // --- 1. Build the Solid 3D Stack ---
 function buildCoin() {
+    if (!coinElement) return; // Safety check
     coinElement.innerHTML = '';
     const startZ = -(LAYERS * THICKNESS_SPREAD) / 2;
 
@@ -37,11 +35,11 @@ function buildCoin() {
         
         if (i === 0) {
             layer.className = 'layer back';
-            layer.appendChild(tailsTemplate.content.cloneNode(true));
+            if(tailsTemplate) layer.appendChild(tailsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px) rotateX(180deg)`;
         } else if (i === LAYERS - 1) {
             layer.className = 'layer front';
-            layer.appendChild(headsTemplate.content.cloneNode(true));
+            if(headsTemplate) layer.appendChild(headsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px)`;
         } else {
             layer.className = 'layer edge';
@@ -63,6 +61,7 @@ function playFlipSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
     
+    // Soft ASMR Click (Thock)
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     const filter = audioCtx.createBiquadFilter();
@@ -82,6 +81,7 @@ function playFlipSound() {
     osc.start(t);
     osc.stop(t + 0.15);
     
+    // High end snap
     const snapOsc = audioCtx.createOscillator();
     const snapGain = audioCtx.createGain();
     snapOsc.type = 'sine';
@@ -179,24 +179,6 @@ function updateOdds(currentStreak) {
     oddsElement.textContent = denominator.toLocaleString();
 }
 
-// --- SCORE LOGIC ---
-function addScore(currentStreak) {
-    // Logic: 1 in 2 = 2 points. 1 in 4 = 4 points.
-    // Streak 1 (1 in 2) -> 2 points
-    // Streak 2 (1 in 4) -> 4 points
-    const points = Math.pow(2, currentStreak);
-    totalScore += points;
-    
-    // Update UI
-    scoreElement.textContent = totalScore.toLocaleString();
-    scoreElement.classList.remove('score-bump');
-    void scoreElement.offsetWidth; // Trigger reflow for animation
-    scoreElement.classList.add('score-bump');
-    
-    // Save
-    localStorage.setItem('goodluck_score', totalScore);
-}
-
 function flipCoin() {
     if (isFlipping) return;
     initAudio();
@@ -240,9 +222,6 @@ function resolveFlip(isHeads) {
     if (isHeads) {
         streak++;
         
-        // Calculate and Add Score based on the ODDS of the flip we just won
-        addScore(streak);
-
         if (streak > best) {
             best = streak;
             bestElement.textContent = best;
@@ -273,7 +252,6 @@ function resolveFlip(isHeads) {
     isFlipping = false;
 }
 
-// Interaction
 sceneElement.addEventListener('mousedown', () => {
     if(!isFlipping) coinElement.style.transform = `rotateX(${currentRotation}deg) scale(0.95)`;
 });

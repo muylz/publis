@@ -1,12 +1,8 @@
 :root {
-    /* Dracula Theme Colors */
     --bg-center: #383447; 
     --bg-edge: #181621;   
-    
     --text-color: #f8f8f2;
     --coin-size: 220px; 
-    
-    /* Coin Colors */
     --green: #50fa7b; 
     --green-dark: #008f30;
     --red: #ff5555;   
@@ -42,7 +38,6 @@ body {
     touch-action: manipulation;
 }
 
-/* UI Layout */
 .ui-container {
     display: flex;
     flex-direction: column;
@@ -54,7 +49,6 @@ body {
     flex-shrink: 0;
 }
 
-/* LOGO STYLES */
 .logo-container {
     margin-bottom: 30px;
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.25)); 
@@ -65,13 +59,13 @@ body {
 }
 
 .app-logo {
-    width: 380px; 
+    width: 340px; 
+    max-width: 90vw; /* Prevents logo from pushing coin off screen on small phones */
     height: auto;
     display: block;
     margin: 0 auto;
 }
 
-/* Clean, Heavy Font for the Logo */
 .logo-text {
     font-family: 'Arial Black', 'Gadget', sans-serif;
     font-weight: 900; 
@@ -123,7 +117,6 @@ body {
     font-weight: 700;
 }
 
-/* --- 3D COIN ENGINE --- */
 .scene {
     width: var(--coin-size);
     height: var(--coin-size);
@@ -146,7 +139,6 @@ body {
     will-change: transform;
 }
 
-/* THE STACK SYSTEM */
 .layer {
     position: absolute;
     top: 0;
@@ -191,7 +183,6 @@ body {
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
 }
 
-/* Animations */
 @keyframes pop {
     0% { transform: scale(1); }
     40% { transform: scale(1.15); }
@@ -218,46 +209,3 @@ body {
     position: absolute;
     border-radius: 50%;
 }
-/* STATS ROW LAYOUT */
-.stats-row {
-    display: flex;
-    gap: 40px;
-    margin-top: 10px;
-}
-
-.stat-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.stat-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #6272a4;
-    margin-bottom: 2px;
-    font-weight: 700;
-}
-
-.stat-value {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #f8f8f2;
-}
-
-/* Make the Score look special (Gold) */
-#score-counter {
-    color: var(--gold);
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* Animation when score increases */
-.score-bump {
-    transform: scale(1.5);
-    color: #fff !important; /* Flash white */
-}
-
-/* Hides the old standalone best-score class if it still exists */
-.best-score { display: none; }
