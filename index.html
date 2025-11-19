@@ -22,14 +22,10 @@
                         <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" /> 
                     </linearGradient>
                 </defs>
-                
-                <!-- GOOD -->
                 <text x="30" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">G</text>
                 <text x="70" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">O</text>
                 <text x="110" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">O</text>
                 <text x="150" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">D</text>
-                
-                <!-- LUCK -->
                 <text x="205" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">L</text>
                 <text x="245" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">U</text>
                 <text x="285" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">C</text>
@@ -37,32 +33,29 @@
             </svg>
         </div>
 
+        <!-- TOP STATS -->
         <div class="counter-box">
             <div class="label">Current Streak</div>
             <div id="streak-counter">0</div>
         </div>
-
-        <!-- STATS ROW (BEST & SCORE) -->
-        <div class="stats-row">
-            <div class="stat-box">
-                <div class="stat-label">Best</div>
-                <div class="stat-value" id="best-counter">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Score</div>
-                <div class="stat-value" id="score-counter">0</div>
-            </div>
-        </div>
+        <div class="best-score">Best: <span id="best-counter">0</span></div>
     </div>
 
+    <!-- COIN -->
     <div class="scene" id="scene">
-        <div class="coin" id="coin">
-            <!-- 3D Stack injected via JS -->
-        </div>
+        <div class="coin" id="coin"></div>
     </div>
 
-    <div class="odds-container">
-        Next Flip: 1 in <span class="odds-value" id="odds-counter">2</span>
+    <!-- BOTTOM STATS -->
+    <div class="bottom-stats">
+        <div class="score-display">
+            <div class="label">Total Score</div>
+            <div id="score-counter">0</div>
+        </div>
+
+        <div class="odds-container">
+            1 in <span class="odds-value" id="odds-counter">2</span>
+        </div>
     </div>
 
     <div id="particles"></div>

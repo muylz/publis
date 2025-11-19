@@ -3,13 +3,12 @@ const LAYERS = 24;
 const THICKNESS_SPREAD = 0.6; 
 
 // --- Game State ---
-let streak = 0;
-let isFlipping = false;
-let currentRotation = 0;
-
-// Load Best Score & Total Score from memory
+// Load everything from storage immediately
+let streak = parseInt(localStorage.getItem('goodluck_streak')) || 0;
 let best = parseInt(localStorage.getItem('goodluck_best')) || 0;
 let totalScore = parseInt(localStorage.getItem('goodluck_score')) || 0;
+let isFlipping = false;
+let currentRotation = 0;
 
 // --- DOM ---
 const coinElement = document.getElementById('coin');
@@ -23,8 +22,10 @@ const headsTemplate = document.getElementById('heads-svg');
 const tailsTemplate = document.getElementById('tails-svg-clean');
 
 // --- Initialize UI ---
+streakElement.textContent = streak;
 bestElement.textContent = best;
-scoreElement.textContent = totalScore.toLocaleString(); // Formats 1000 as 1,000
+scoreElement.textContent = totalScore.toLocaleString();
+updateOdds(streak); // Update odds based on loaded streak
 
 // --- 1. Build the Solid 3D Stack ---
 function buildCoin() {
@@ -36,17 +37,14 @@ function buildCoin() {
         const currentZ = startZ + (i * THICKNESS_SPREAD);
         
         if (i === 0) {
-            // Back Face (Tails)
             layer.className = 'layer back';
             layer.appendChild(tailsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px) rotateX(180deg)`;
         } else if (i === LAYERS - 1) {
-            // Front Face (Heads)
             layer.className = 'layer front';
             layer.appendChild(headsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px)`;
         } else {
-            // Edge
             layer.className = 'layer edge';
             layer.style.transform = `translateZ(${currentZ}px)`;
         }
@@ -66,7 +64,6 @@ function playFlipSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
     
-    // Soft ASMR Click (Thock)
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     const filter = audioCtx.createBiquadFilter();
@@ -86,7 +83,6 @@ function playFlipSound() {
     osc.start(t);
     osc.stop(t + 0.15);
     
-    // High end snap
     const snapOsc = audioCtx.createOscillator();
     const snapGain = audioCtx.createGain();
     snapOsc.type = 'sine';
@@ -126,7 +122,6 @@ function playLoseSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
     
-    // Hollow Drop
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     const osc2 = audioCtx.createOscillator();
@@ -154,7 +149,6 @@ function playLoseSound() {
     osc2.stop(t + 0.7);
 }
 
-// --- 3. Visual FX ---
 function createParticles(x, y, color) {
     for(let i=0; i<15; i++) {
         const p = document.createElement('div');
@@ -181,26 +175,20 @@ function createParticles(x, y, color) {
     }
 }
 
-// --- 4. Game Logic ---
 function updateOdds(currentStreak) {
     const denominator = Math.pow(2, currentStreak + 1);
     oddsElement.textContent = denominator.toLocaleString();
 }
 
-// --- SCORE LOGIC ---
 function addScore(currentStreak) {
-    // 1 in 2 = +2 points
-    // 1 in 4 = +4 points
     const points = Math.pow(2, currentStreak);
     totalScore += points;
     
-    // UI Update
     scoreElement.textContent = totalScore.toLocaleString();
     scoreElement.classList.remove('score-bump');
-    void scoreElement.offsetWidth; // Reset animation
+    void scoreElement.offsetWidth; 
     scoreElement.classList.add('score-bump');
     
-    // Save to phone
     localStorage.setItem('goodluck_score', totalScore);
 }
 
@@ -246,8 +234,8 @@ function resolveFlip(isHeads) {
 
     if (isHeads) {
         streak++;
-        
-        // Calculate Points
+        localStorage.setItem('goodluck_streak', streak); // SAVE STREAK
+
         addScore(streak);
 
         if (streak > best) {
@@ -266,6 +254,8 @@ function resolveFlip(isHeads) {
 
     } else {
         streak = 0;
+        localStorage.setItem('goodluck_streak', streak); // RESET STREAK
+
         streakElement.textContent = 0;
         
         streakElement.style.color = "var(--red)";
