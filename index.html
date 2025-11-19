@@ -12,6 +12,7 @@
 <body>
 
     <div class="ui-container">
+        <!-- LOGO -->
         <div class="logo-container">
             <svg class="app-logo" viewBox="0 0 340 60" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -21,10 +22,14 @@
                         <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" /> 
                     </linearGradient>
                 </defs>
+                
+                <!-- GOOD -->
                 <text x="30" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">G</text>
                 <text x="70" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">O</text>
                 <text x="110" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">O</text>
                 <text x="150" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">D</text>
+                
+                <!-- LUCK -->
                 <text x="205" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">L</text>
                 <text x="245" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">U</text>
                 <text x="285" y="50" class="logo-text" fill="url(#goldGradient)" text-anchor="middle">C</text>
@@ -36,11 +41,24 @@
             <div class="label">Current Streak</div>
             <div id="streak-counter">0</div>
         </div>
-        <div class="best-score">Best: <span id="best-counter">0</span></div>
+
+        <!-- STATS ROW (BEST & SCORE) -->
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-label">Best</div>
+                <div class="stat-value" id="best-counter">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score-counter">0</div>
+            </div>
+        </div>
     </div>
 
     <div class="scene" id="scene">
-        <div class="coin" id="coin"></div>
+        <div class="coin" id="coin">
+            <!-- 3D Stack injected via JS -->
+        </div>
     </div>
 
     <div class="odds-container">
@@ -49,7 +67,7 @@
 
     <div id="particles"></div>
 
-    <!-- Templates (MUST BE PRESENT FOR COIN TO APPEAR) -->
+    <!-- Templates -->
     <template id="heads-svg">
         <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" fill="none" stroke="white" stroke-width="2"/>
