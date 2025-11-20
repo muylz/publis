@@ -139,48 +139,43 @@ body {
     transform: scale(1.3);
 }
 
-/* --- FLOATING POINTS ANIMATION (RIGHT) --- */
+/* --- UPDATED FLOATING ANIMATION (UPWARDS) --- */
 .score-floater {
     position: absolute;
-    top: 50%; 
-    left: 100%; /* Start exactly at the right edge of the score container */
-    /* 
-       translateY(-40%) aligns it visually with the number baseline better than -50%.
-       margin-left: 10px gives it a tight initial gap.
-    */
-    transform: translateY(-40%); 
-    margin-left: 15px; 
+    /* Start at the top of the Odds container (closest to the Score) */
+    top: -10px; 
+    left: 50%;
     
-    font-size: 1.5rem;
+    /* Center horizontally */
+    transform: translateX(-50%);
+    
+    font-size: 1.8rem;
     font-weight: 900;
     color: var(--green);
-    text-shadow: 0 0 10px rgba(80, 250, 123, 0.5);
+    text-shadow: 0 0 10px rgba(80, 250, 123, 0.8);
     pointer-events: none;
-    opacity: 0;
-    white-space: nowrap;
+    z-index: 100;
     
-    animation: floatRightSide 1.0s ease-out forwards;
+    animation: floatUpToScore 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
 }
 
-@keyframes floatRightSide {
+@keyframes floatUpToScore {
     0% {
         opacity: 0;
-        /* Start slightly inside to pop out */
-        transform: translate(-10px, -40%) scale(0.5); 
+        /* Start slightly down (inside the odds number) */
+        transform: translate(-50%, 20px) scale(0.5);
     }
     20% {
         opacity: 1;
-        /* Land in the "sweet spot" next to the number */
-        transform: translate(0, -40%) scale(1.2); 
+        transform: translate(-50%, 0px) scale(1.2);
     }
     100% {
         opacity: 0;
-        /* Drift just a little bit further right (20px) so it doesn't fly away */
-        transform: translate(20px, -40%) scale(1); 
+        /* Fly UP towards the score (negative Y) */
+        transform: translate(-50%, -60px) scale(1);
     }
 }
-/* ---------------------------------------- */
-
+/* -------------------------------------------- */
 /* ODDS TOWER STYLES */
 .odds-container {
     display: flex;
@@ -188,7 +183,11 @@ body {
     align-items: center;
     justify-content: center;
     line-height: 1;
+    /* CRITICAL: Allows the floater to be positioned relative to this box */
+    position: relative; 
 }
+
+/* ... (Odds static/counter styles remain the same) ... */
 
 .odds-static {
     font-size: 0.85rem;

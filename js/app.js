@@ -226,16 +226,20 @@ function animateScoreValue(start, end, duration) {
     };
     window.requestAnimationFrame(step);
 }
+// ... (Previous JS remains the same) ...
 
 function showFloatingPoints(points) {
     const floater = document.createElement('div');
     floater.classList.add('score-floater');
     floater.textContent = "+" + points.toLocaleString();
     
-    // Check if container exists
-    if (scoreDisplayContainer) {
-        scoreDisplayContainer.appendChild(floater);
-        setTimeout(() => { floater.remove(); }, 1500);
+    // CHANGED: Append to the ODDS container so it starts there
+    const oddsContainer = document.querySelector('.odds-container');
+    
+    if (oddsContainer) {
+        oddsContainer.appendChild(floater);
+        // Remove after animation (0.8s)
+        setTimeout(() => { floater.remove(); }, 800);
     }
 }
 
@@ -244,12 +248,25 @@ function addScore(currentStreak) {
     const oldScore = totalScore;
     const newScore = totalScore + points;
     
+    // 1. Trigger Floating Text (Now flies UP from Odds)
     showFloatingPoints(points);
+    
+    // 2. Roll the number up
     animateScoreValue(oldScore, newScore, 1000);
     
+    // Update global variable
     totalScore = newScore;
     localStorage.setItem('goodluck_score', totalScore);
+    
+    // Pop the score container slightly later (when the numbers arrive)
+    setTimeout(() => {
+        scoreElement.classList.remove('score-bump');
+        void scoreElement.offsetWidth; 
+        scoreElement.classList.add('score-bump');
+    }, 300);
 }
+
+// ... (Rest of JS remains the same) ...
 
 function flipCoin() {
     if (isFlipping) return;
