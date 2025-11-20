@@ -4,7 +4,7 @@
     --bg-edge: #181621;   
     --text-color: #f8f8f2;
     
-    /* Responsive Coin Size: 220px normally, but shrinks on short screens */
+    /* Responsive Coin Size */
     --coin-size: min(220px, 30vh); 
     
     --green: #50fa7b; 
@@ -26,7 +26,7 @@ html, body {
     width: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevent scrolling */
+    overflow: hidden;
 }
 
 body {
@@ -35,13 +35,12 @@ body {
     color: var(--text-color);
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     
-    /* FLEXBOX MAGIC: This distributes space evenly regardless of screen height */
+    /* Flexbox centering */
     display: flex;
     flex-direction: column;
     align-items: center; 
     justify-content: space-evenly; 
     
-    /* Add padding for notches/gesture bars */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     
@@ -56,11 +55,11 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
-    flex-shrink: 0; /* Prevents this from squishing */
+    flex-shrink: 0;
 }
 
 .logo-container {
-    margin-bottom: 2vh; /* Responsive margin */
+    margin-bottom: 2vh;
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.25)); 
     display: flex;
     justify-content: center; 
@@ -70,7 +69,7 @@ body {
 
 .app-logo {
     width: 340px; 
-    max-width: 85vw; /* Ensures logo never touches screen edges */
+    max-width: 85vw;
     height: auto;
     display: block;
 }
@@ -92,7 +91,6 @@ body {
 }
 
 #streak-counter {
-    /* CLAMP: Minimum 4rem, Preferred 12% of width, Max 7rem */
     font-size: clamp(4rem, 12vw, 7rem); 
     font-weight: 900;
     line-height: 0.9;
@@ -116,19 +114,14 @@ body {
 .scene {
     width: var(--coin-size);
     height: var(--coin-size);
-    
-    /* Aspect Ratio Lock */
     min-width: var(--coin-size);
     min-height: var(--coin-size);
-    
     perspective: 1000px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     flex-shrink: 0;
-    
-    /* Add breathing room on short screens */
     margin: 10px 0;
 }
 
@@ -145,7 +138,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2vh; /* Responsive gap */
+    gap: 2vh; 
     z-index: 10;
     flex-shrink: 0;
 }
@@ -158,18 +151,14 @@ body {
 }
 
 #score-counter {
-    /* Responsive Font Size */
     font-size: clamp(2rem, 8vw, 2.5rem);
     font-weight: 900;
     color: #ffffff;
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Removed transform transition so keyframes control the pop */
+    transition: color 0.2s ease; 
     margin-top: 5px;
     font-variant-numeric: tabular-nums;
-}
-
-.score-bump {
-    transform: scale(1.3);
 }
 
 /* Floating Animation */
@@ -271,7 +260,7 @@ body {
 /* --- ANIMATIONS --- */
 @keyframes pop {
     0% { transform: scale(1); }
-    40% { transform: scale(1.15); }
+    40% { transform: scale(1.15); } /* Same big pop for everyone */
     100% { transform: scale(1); }
 }
 

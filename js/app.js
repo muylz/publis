@@ -19,8 +19,7 @@ const oddsElement = document.getElementById('odds-counter');
 const particlesContainer = document.getElementById('particles');
 const headsTemplate = document.getElementById('heads-svg');
 const tailsTemplate = document.getElementById('tails-svg-clean');
-// Select the wrapper to append floating text
-const scoreDisplayContainer = document.querySelector('.score-display'); 
+const scoreDisplayContainer = document.querySelector('.odds-container'); // Floating numbers target
 
 // --- Initialize UI ---
 streakElement.textContent = streak;
@@ -53,7 +52,6 @@ function buildCoin() {
         coinElement.appendChild(layer);
     }
 
-    // Apply saved rotation
     coinElement.style.transition = 'none';
     coinElement.style.transform = `rotateX(${currentRotation}deg)`;
 }
@@ -71,7 +69,7 @@ function initAudio() {
 async function loadFlipSound() {
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const response = await fetch('assets/flip.wav');
+        const response = await fetch('assets/flip.mp3'); // Ensure this matches your actual file extension
         const arrayBuffer = await response.arrayBuffer();
         flipBuffer = await audioCtx.decodeAudioData(arrayBuffer);
     } catch (error) {
@@ -92,26 +90,22 @@ function playFlipSound() {
         source.connect(gainNode).connect(audioCtx.destination);
         source.start(0);
     } else {
+        // Fallback Synth
         const t = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         const filter = audioCtx.createBiquadFilter();
-
         osc.type = 'triangle'; 
         osc.frequency.setValueAtTime(600, t);
         osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-        
         filter.type = 'lowpass';
         filter.frequency.value = 3000;
-
         gain.gain.setValueAtTime(0, t);
         gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
         gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-
         osc.connect(filter).connect(gain).connect(audioCtx.destination);
         osc.start(t);
         osc.stop(t + 0.15);
-        
         const snapOsc = audioCtx.createOscillator();
         const snapGain = audioCtx.createGain();
         snapOsc.type = 'sine';
@@ -119,7 +113,6 @@ function playFlipSound() {
         snapOsc.frequency.exponentialRampToValueAtTime(500, t + 0.02);
         snapGain.gain.setValueAtTime(0.05, t);
         snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
-        
         snapOsc.connect(snapGain).connect(audioCtx.destination);
         snapOsc.start(t);
         snapOsc.stop(t + 0.03);
@@ -226,20 +219,16 @@ function animateScoreValue(start, end, duration) {
     };
     window.requestAnimationFrame(step);
 }
-// ... (Previous JS remains the same) ...
 
 function showFloatingPoints(points) {
     const floater = document.createElement('div');
     floater.classList.add('score-floater');
     floater.textContent = "+" + points.toLocaleString();
     
-    // CHANGED: Append to the ODDS container so it starts there
-    const oddsContainer = document.querySelector('.odds-container');
-    
-    if (oddsContainer) {
-        oddsContainer.appendChild(floater);
-        // Remove after animation (0.8s)
-        setTimeout(() => { floater.remove(); }, 800);
+    // Append to the odds container so it flies up from there
+    if (scoreDisplayContainer) {
+        scoreDisplayContainer.appendChild(floater);
+        setTimeout(() => { floater.remove(); }, 1500);
     }
 }
 
@@ -248,31 +237,22 @@ function addScore(currentStreak) {
     const oldScore = totalScore;
     const newScore = totalScore + points;
     
-    // 1. Trigger Floating Text (Now flies UP from Odds)
     showFloatingPoints(points);
-    
-    // 2. Roll the number up
     animateScoreValue(oldScore, newScore, 1000);
     
-    // Update global variable
     totalScore = newScore;
     localStorage.setItem('goodluck_score', totalScore);
     
-    // Pop the score container slightly later (when the numbers arrive)
-    setTimeout(() => {
-        scoreElement.classList.remove('score-bump');
-        void scoreElement.offsetWidth; 
-        scoreElement.classList.add('score-bump');
-    }, 300);
+    // Removed manual score-bump triggering here
+    // It is now handled via the shared .pop-anim in resolveFlip
 }
-
-// ... (Rest of JS remains the same) ...
 
 function flipCoin() {
     if (isFlipping) return;
     initAudio();
     isFlipping = true;
     
+    // Reset Animations
     streakElement.classList.remove('pop-anim');
     scoreElement.classList.remove('pop-anim');
     oddsElement.classList.remove('pop-anim');
@@ -326,10 +306,14 @@ function resolveFlip(isHeads) {
         
         streakElement.textContent = streak;
         
+        // --- UNIFIED WIN ANIMATION ---
         streakElement.style.color = "var(--green)";
+        scoreElement.style.color = "var(--green)";
         oddsElement.style.color = "var(--green)";
         
+        // All 3 get the exact same pop animation class
         streakElement.classList.add('pop-anim');
+        scoreElement.classList.add('pop-anim');
         oddsElement.classList.add('pop-anim');
         
         playWinSound(streak);
@@ -337,8 +321,11 @@ function resolveFlip(isHeads) {
 
         setTimeout(() => {
             streakElement.style.color = "#fff";
+            scoreElement.style.color = "#fff";
             oddsElement.style.color = "#fff";
+            
             streakElement.classList.remove('pop-anim');
+            scoreElement.classList.remove('pop-anim');
             oddsElement.classList.remove('pop-anim');
         }, 600);
 
@@ -348,6 +335,7 @@ function resolveFlip(isHeads) {
 
         streakElement.textContent = 0;
         
+        // Only Streak goes red
         streakElement.style.color = "var(--red)";
         oddsElement.style.color = "var(--red)";
         
