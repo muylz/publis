@@ -68,47 +68,46 @@ function playFlipSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
 
-    // 1. The "Thock" Body (Mid-range wood block sound)
+    // 1. The "Body" (Thud) - Fixed Pitch Sine
+    // No frequency sweep = No laser sound.
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    const filter = audioCtx.createBiquadFilter();
 
-    osc.type = 'triangle'; 
-    // Start at 600Hz (Mid) and drop to 150Hz. 
-    // This removes the "Kick Drum" sub-bass frequencies.
-    osc.frequency.setValueAtTime(600, t);
-    osc.frequency.exponentialRampToValueAtTime(150, t + 0.08);
-
-    // Lowpass Filter: Keeps it "Milky"/Soft
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1500, t);
-    filter.frequency.linearRampToValueAtTime(500, t + 0.08);
-
-    // Envelope: Very fast attack, super short decay (The "Click")
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(350, t); // Fixed low-mid tone
+    
+    // Very fast envelope
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08); 
+    gain.gain.linearRampToValueAtTime(0.5, t + 0.005); 
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1); 
 
-    osc.connect(filter).connect(gain).connect(audioCtx.destination);
+    osc.connect(gain).connect(audioCtx.destination);
     osc.start(t);
-    osc.stop(t + 0.1);
+    osc.stop(t + 0.15);
 
-    // 2. The "Snap" (Tactile feel)
-    // A tiny burst of Square wave gives it that mechanical switch feel
-    const snapOsc = audioCtx.createOscillator();
-    const snapGain = audioCtx.createGain();
-    const snapFilter = audioCtx.createBiquadFilter();
+    // 2. The "Click" (Texture) - Filtered White Noise
+    // This simulates the physical friction/snap
+    const bufferSize = audioCtx.sampleRate * 0.1; // Short buffer
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+    }
 
-    snapOsc.type = 'square';
-    snapFilter.type = 'bandpass';
-    snapFilter.frequency.value = 2000; // High snap
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const noiseGain = audioCtx.createGain();
+    const noiseFilter = audioCtx.createBiquadFilter();
 
-    snapGain.gain.setValueAtTime(0.05, t); // Very quiet
-    snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02); // Instant stop
+    // Highpass filter to make it crisp
+    noiseFilter.type = 'highpass';
+    noiseFilter.frequency.value = 2000; 
 
-    snapOsc.connect(snapFilter).connect(snapGain).connect(audioCtx.destination);
-    snapOsc.start(t);
-    snapOsc.stop(t + 0.03);
+    noiseGain.gain.setValueAtTime(0.3, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.05); // Super short snap
+
+    noise.connect(noiseFilter).connect(noiseGain).connect(audioCtx.destination);
+    noise.start(t);
 }
 
 function playWinSound(streakCount) {
@@ -272,8 +271,10 @@ function resolveFlip(isHeads) {
             localStorage.setItem('goodluck_best', best);
         }
         
+        // 1. Update Text
         streakElement.textContent = streak;
-        
+        scoreElement.textContent = totalScore.toLocaleString();
+
         // 2. Apply Green Color & Animation to BOTH
         streakElement.style.color = "var(--green)";
         scoreElement.style.color = "var(--green)";
