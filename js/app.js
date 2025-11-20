@@ -70,7 +70,7 @@ function initAudio() {
 async function loadFlipSound() {
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const response = await fetch('assets/flip.mp3');
+        const response = await fetch('assets/flip.wav');
         const arrayBuffer = await response.arrayBuffer();
         flipBuffer = await audioCtx.decodeAudioData(arrayBuffer);
     } catch (error) {
