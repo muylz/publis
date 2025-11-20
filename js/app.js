@@ -58,58 +58,60 @@ buildCoin();
 
 // --- 2. Audio Engine ---
 let audioCtx;
-let flipBuffer = null; // This will hold your custom sound
+let flipBuffer = null;
 
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-// --- NEW: Load your custom sound file ---
 async function loadFlipSound() {
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // FETCH THE FILE (Make sure the name matches your file!)
+        // UPDATED TO WAV
         const response = await fetch('assets/flip.wav');
         const arrayBuffer = await response.arrayBuffer();
         
-        // Decode it into audio data
         flipBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-        console.log("Custom flip sound loaded!");
     } catch (error) {
         console.error("Error loading flip sound:", error);
     }
 }
-// Load it immediately
 loadFlipSound();
 
 function playFlipSound() {
     if (!audioCtx) return;
 
     if (flipBuffer) {
-        // Play your custom file
         const source = audioCtx.createBufferSource();
         source.buffer = flipBuffer;
-        
-        // Randomize pitch slightly for realism (0.95x to 1.05x speed)
         source.playbackRate.value = 0.95 + Math.random() * 0.1;
-        
         const gainNode = audioCtx.createGain();
-        gainNode.gain.value = 0.8; // Volume adjustment
-        
+        gainNode.gain.value = 0.8; 
         source.connect(gainNode).connect(audioCtx.destination);
         source.start(0);
     } else {
-        // Fallback if file hasn't loaded yet (Basic Click)
+        // Fallback synth if file load fails
+        const t = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.connect(gain).connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
+        const filter = audioCtx.createBiquadFilter();
+
+        osc.type = 'triangle'; 
+        osc.frequency.setValueAtTime(600, t);
+        osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+        
+        filter.type = 'lowpass';
+        filter.frequency.value = 3000;
+
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+
+        osc.connect(filter).connect(gain).connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + 0.15);
     }
 }
 
@@ -202,7 +204,6 @@ function addScore(currentStreak) {
     totalScore += points;
     
     scoreElement.textContent = totalScore.toLocaleString();
-    
     scoreElement.classList.remove('score-bump');
     void scoreElement.offsetWidth; 
     scoreElement.classList.add('score-bump');
@@ -221,6 +222,10 @@ function flipCoin() {
     
     streakElement.classList.remove('pop-anim');
     scoreElement.classList.remove('pop-anim');
+    // Reset Odds Animation
+    oddsElement.classList.remove('pop-anim');
+    oddsElement.classList.remove('shake-anim');
+    
     document.body.classList.remove('shake-anim');
 
     const isHeads = Math.random() > 0.5;
@@ -259,7 +264,6 @@ function resolveFlip(isHeads) {
     if (isHeads) {
         streak++;
         localStorage.setItem('goodluck_streak', streak); 
-
         addScore(streak);
 
         if (streak > best) {
@@ -269,9 +273,15 @@ function resolveFlip(isHeads) {
         }
         
         streakElement.textContent = streak;
+        
+        // --- ANIMATE EVERYTHING GREEN ---
         streakElement.style.color = "var(--green)";
+        scoreElement.style.color = "var(--green)";
+        oddsElement.style.color = "var(--green)";
+        
         streakElement.classList.add('pop-anim');
         scoreElement.classList.add('pop-anim');
+        oddsElement.classList.add('pop-anim');
         
         playWinSound(streak);
         createParticles(cx, cy, 'var(--green)');
@@ -279,29 +289,40 @@ function resolveFlip(isHeads) {
         setTimeout(() => {
             streakElement.style.color = "#fff";
             scoreElement.style.color = "#fff";
+            oddsElement.style.color = "#fff";
+            
             streakElement.classList.remove('pop-anim');
             scoreElement.classList.remove('pop-anim');
+            oddsElement.classList.remove('pop-anim');
         }, 600);
 
     } else {
         streak = 0;
         localStorage.setItem('goodluck_streak', streak);
-
         streakElement.textContent = 0;
+        
+        // --- ANIMATE EVERYTHING RED ---
         streakElement.style.color = "var(--red)";
+        oddsElement.style.color = "var(--red)";
         
         document.body.classList.add('shake-anim');
+        oddsElement.classList.add('shake-anim');
+        
         playLoseSound();
         createParticles(cx, cy, 'var(--red)');
 
-        setTimeout(() => streakElement.style.color = "#fff", 600);
+        setTimeout(() => {
+            streakElement.style.color = "#fff";
+            oddsElement.style.color = "#fff";
+            
+            oddsElement.classList.remove('shake-anim');
+        }, 600);
     }
     
     updateOdds(streak);
     isFlipping = false;
 }
 
-// Interaction
 sceneElement.addEventListener('mousedown', () => {
     if(!isFlipping) coinElement.style.transform = `rotateX(${currentRotation}deg) scale(0.95)`;
 });
