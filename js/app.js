@@ -3,12 +3,13 @@ const LAYERS = 24;
 const THICKNESS_SPREAD = 0.6; 
 
 // --- Game State ---
-// Load everything from storage immediately
 let streak = parseInt(localStorage.getItem('goodluck_streak')) || 0;
 let best = parseInt(localStorage.getItem('goodluck_best')) || 0;
 let totalScore = parseInt(localStorage.getItem('goodluck_score')) || 0;
+// LOAD SAVED ROTATION (Default to 0 if new)
+let currentRotation = parseInt(localStorage.getItem('goodluck_rotation')) || 0;
 let isFlipping = false;
-let currentRotation = 0;
+
 
 // --- DOM ---
 const coinElement = document.getElementById('coin');
@@ -25,7 +26,7 @@ const tailsTemplate = document.getElementById('tails-svg-clean');
 streakElement.textContent = streak;
 bestElement.textContent = best;
 scoreElement.textContent = totalScore.toLocaleString();
-updateOdds(streak); // Update odds based on loaded streak
+updateOdds(streak);
 
 // --- 1. Build the Solid 3D Stack ---
 function buildCoin() {
@@ -50,6 +51,10 @@ function buildCoin() {
         }
         coinElement.appendChild(layer);
     }
+
+    // --- CRITICAL FIX: Apply saved rotation immediately without animation ---
+    coinElement.style.transition = 'none';
+    coinElement.style.transform = `rotateX(${currentRotation}deg)`;
 }
 buildCoin();
 
@@ -218,6 +223,9 @@ function flipCoin() {
     }
 
     currentRotation = target;
+    
+    // SAVE ROTATION STATE
+    localStorage.setItem('goodluck_rotation', currentRotation);
 
     coinElement.style.transition = 'transform 2.5s cubic-bezier(0.15, 0, 0.10, 1)';
     coinElement.style.transform = `rotateX(${currentRotation}deg)`;
@@ -234,7 +242,7 @@ function resolveFlip(isHeads) {
 
     if (isHeads) {
         streak++;
-        localStorage.setItem('goodluck_streak', streak); // SAVE STREAK
+        localStorage.setItem('goodluck_streak', streak); 
 
         addScore(streak);
 
@@ -254,7 +262,7 @@ function resolveFlip(isHeads) {
 
     } else {
         streak = 0;
-        localStorage.setItem('goodluck_streak', streak); // RESET STREAK
+        localStorage.setItem('goodluck_streak', streak);
 
         streakElement.textContent = 0;
         
