@@ -51,6 +51,7 @@ function buildCoin() {
         coinElement.appendChild(layer);
     }
 
+    // Apply saved rotation
     coinElement.style.transition = 'none';
     coinElement.style.transform = `rotateX(${currentRotation}deg)`;
 }
@@ -58,47 +59,57 @@ buildCoin();
 
 // --- 2. Audio Engine ---
 let audioCtx;
+let flipBuffer = null;
+
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
+async function loadFlipSound() {
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const response = await fetch('assets/flip.wav');
+        const arrayBuffer = await response.arrayBuffer();
+        flipBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    } catch (error) {
+        console.error("Error loading flip sound:", error);
+    }
+}
+loadFlipSound();
+
 function playFlipSound() {
     if (!audioCtx) return;
-    const t = audioCtx.currentTime;
-    
-    // Soft ASMR Click (Thock)
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    const filter = audioCtx.createBiquadFilter();
 
-    osc.type = 'triangle'; 
-    osc.frequency.setValueAtTime(600, t);
-    osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-    
-    filter.type = 'lowpass';
-    filter.frequency.value = 3000;
+    if (flipBuffer) {
+        const source = audioCtx.createBufferSource();
+        source.buffer = flipBuffer;
+        source.playbackRate.value = 0.95 + Math.random() * 0.1;
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = 0.8; 
+        source.connect(gainNode).connect(audioCtx.destination);
+        source.start(0);
+    } else {
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
 
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        osc.type = 'triangle'; 
+        osc.frequency.setValueAtTime(600, t);
+        osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+        
+        filter.type = 'lowpass';
+        filter.frequency.value = 3000;
 
-    osc.connect(filter).connect(gain).connect(audioCtx.destination);
-    osc.start(t);
-    osc.stop(t + 0.15);
-    
-    // High end snap
-    const snapOsc = audioCtx.createOscillator();
-    const snapGain = audioCtx.createGain();
-    snapOsc.type = 'sine';
-    snapOsc.frequency.setValueAtTime(2000, t);
-    snapOsc.frequency.exponentialRampToValueAtTime(500, t + 0.02);
-    snapGain.gain.setValueAtTime(0.05, t);
-    snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
-    
-    snapOsc.connect(snapGain).connect(audioCtx.destination);
-    snapOsc.start(t);
-    snapOsc.stop(t + 0.03);
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+
+        osc.connect(filter).connect(gain).connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + 0.15);
+    }
 }
 
 function playWinSound(streakCount) {
@@ -190,6 +201,7 @@ function addScore(currentStreak) {
     totalScore += points;
     
     scoreElement.textContent = totalScore.toLocaleString();
+    
     scoreElement.classList.remove('score-bump');
     void scoreElement.offsetWidth; 
     scoreElement.classList.add('score-bump');

@@ -135,33 +135,29 @@ body {
     transform: scale(1.3);
 }
 
-/* ODDS TOWER STYLES */
+/* ODDS TOWER STYLES - Unified */
 .odds-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    line-height: 1.1;
+    justify-content: center;
+    line-height: 1; /* Tight stack */
 }
 
-.odds-static {
-    font-size: 1.2rem;
-    color: #6272a4; /* Dracula Purple/Grey */
-    font-weight: 800;
-}
-
-.odds-label {
-    font-size: 0.7rem;
-    color: #bd93f9;
-    opacity: 0.7;
-    letter-spacing: 2px;
-    font-weight: 600;
-    margin: 2px 0;
-}
-
-.odds-value {
-    font-size: 2.0rem; /* Big Number */
+/* Target all three lines (1, IN, X) to be identical */
+.odds-item, #odds-counter {
+    font-size: 2.5rem; /* Same big size as Score */
     color: #fff;
     font-weight: 900;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums; /* Ensures '1' centers correctly */
+}
+
+/* Specific animation property for the number only */
+#odds-counter {
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease;
 }
 
