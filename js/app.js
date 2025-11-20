@@ -63,59 +63,74 @@ let audioCtx;
 let flipBuffer = null;
 
 function initAudio() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    // Create context if it doesn't exist
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // Resume if suspended (browser autoplay policy)
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
 }
 
 async function loadFlipSound() {
     try {
+        // Initialize context to decode data
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // --- CHANGE: Point to the .wav file ---
         const response = await fetch('assets/flip.wav');
+        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
         const arrayBuffer = await response.arrayBuffer();
         flipBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        console.log("Flip sound loaded successfully");
     } catch (error) {
-        console.error("Error loading flip sound:", error);
+        console.warn("Error loading flip.wav, reverting to synthesizer:", error);
     }
 }
+// Load immediately
 loadFlipSound();
 
 function playFlipSound() {
     if (!audioCtx) return;
 
     if (flipBuffer) {
+        // --- SAMPLE PLAYBACK ---
         const source = audioCtx.createBufferSource();
         source.buffer = flipBuffer;
+        
+        // Randomize pitch slightly (0.95x to 1.05x) so it doesn't sound robotic
         source.playbackRate.value = 0.95 + Math.random() * 0.1;
+        
+        // Create a Gain Node (Volume)
         const gainNode = audioCtx.createGain();
-        gainNode.gain.value = 0.8; 
+        gainNode.gain.value = 0.6; // Adjust this (0.0 to 1.0) if the WAV is too loud
+        
         source.connect(gainNode).connect(audioCtx.destination);
         source.start(0);
     } else {
+        // --- FALLBACK SYNTHESIZER (If wav fails to load) ---
         const t = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         const filter = audioCtx.createBiquadFilter();
+        
         osc.type = 'triangle'; 
         osc.frequency.setValueAtTime(600, t);
         osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+        
         filter.type = 'lowpass';
         filter.frequency.value = 3000;
+        
         gain.gain.setValueAtTime(0, t);
         gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
         gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        
         osc.connect(filter).connect(gain).connect(audioCtx.destination);
         osc.start(t);
         osc.stop(t + 0.15);
-        const snapOsc = audioCtx.createOscillator();
-        const snapGain = audioCtx.createGain();
-        snapOsc.type = 'sine';
-        snapOsc.frequency.setValueAtTime(2000, t);
-        snapOsc.frequency.exponentialRampToValueAtTime(500, t + 0.02);
-        snapGain.gain.setValueAtTime(0.05, t);
-        snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
-        snapOsc.connect(snapGain).connect(audioCtx.destination);
-        snapOsc.start(t);
-        snapOsc.stop(t + 0.03);
     }
 }
 
