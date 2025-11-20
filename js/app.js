@@ -68,26 +68,44 @@ function playFlipSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
 
-    // 1. The "Body" (Thud) - Fixed Pitch Sine
-    // No frequency sweep = No laser sound.
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(350, t); // Fixed low-mid tone
+    // 1. The "Ting" (Metallic Ring)
+    // Metal sounds are "inharmonic" (multiple tones that don't quite match).
+    // We create two sine waves at high frequencies to simulate this.
     
-    // Very fast envelope
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.5, t + 0.005); 
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1); 
+    // Main Tone (High Ring)
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(2000, t); // High pitch
+    osc1.frequency.exponentialRampToValueAtTime(1500, t + 0.2); // Slight drop (Doppler effect)
 
-    osc.connect(gain).connect(audioCtx.destination);
-    osc.start(t);
-    osc.stop(t + 0.15);
+    // Secondary Tone (Dissonance for Metal texture)
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(3500, t); // Very high overtone
+    osc2.frequency.exponentialRampToValueAtTime(3000, t + 0.2);
+    
+    // Envelope: Fast attack, medium decay
+    gain1.gain.setValueAtTime(0, t);
+    gain1.gain.linearRampToValueAtTime(0.15, t + 0.01); // Gentle attack
+    gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.3); // Ring out
 
-    // 2. The "Click" (Texture) - Filtered White Noise
-    // This simulates the physical friction/snap
-    const bufferSize = audioCtx.sampleRate * 0.1; // Short buffer
+    gain2.gain.setValueAtTime(0, t);
+    gain2.gain.linearRampToValueAtTime(0.05, t + 0.01); // Quieter overtone
+    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.15); // Decays faster
+
+    osc1.connect(gain1).connect(audioCtx.destination);
+    osc2.connect(gain2).connect(audioCtx.destination);
+    
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + 0.3);
+    osc2.stop(t + 0.3);
+
+    // 2. The "Click" (Impact)
+    // A tiny burst of filtered noise to sound like it hitting your thumb nail
+    const bufferSize = audioCtx.sampleRate * 0.05; // 50ms buffer
     const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
@@ -99,12 +117,11 @@ function playFlipSound() {
     const noiseGain = audioCtx.createGain();
     const noiseFilter = audioCtx.createBiquadFilter();
 
-    // Highpass filter to make it crisp
     noiseFilter.type = 'highpass';
-    noiseFilter.frequency.value = 2000; 
+    noiseFilter.frequency.value = 1000; // Remove rumble, keep the click
 
-    noiseGain.gain.setValueAtTime(0.3, t);
-    noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.05); // Super short snap
+    noiseGain.gain.setValueAtTime(0.4, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02); // Instant snap
 
     noise.connect(noiseFilter).connect(noiseGain).connect(audioCtx.destination);
     noise.start(t);
