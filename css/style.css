@@ -135,30 +135,33 @@ body {
     transform: scale(1.3);
 }
 
-/* ODDS TOWER STYLES - Unified */
+/* ODDS TOWER STYLES */
 .odds-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    line-height: 1; /* Tight stack */
+    line-height: 1.3; 
 }
 
-/* Target all three lines (1, IN, X) to be identical */
-.odds-item, #odds-counter {
-    font-size: 2.5rem; /* Same big size as Score */
+/* The "1" and "IN" styling - Matches .label */
+.odds-static {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #bd93f9; 
+    font-weight: 700;
+}
+
+/* The Number (X) styling - Stays Big and White */
+#odds-counter {
+    font-size: 2.5rem; 
     color: #fff;
     font-weight: 900;
     text-align: center;
-    margin: 0;
-    padding: 0;
-    text-transform: uppercase;
-    font-variant-numeric: tabular-nums; /* Ensures '1' centers correctly */
-}
-
-/* Specific animation property for the number only */
-#odds-counter {
+    font-variant-numeric: tabular-nums;
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease;
+    margin-top: 5px; /* Slight spacing from "IN" */
 }
 
 /* COIN ENGINE */

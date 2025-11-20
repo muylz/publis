@@ -109,6 +109,18 @@ function playFlipSound() {
         osc.connect(filter).connect(gain).connect(audioCtx.destination);
         osc.start(t);
         osc.stop(t + 0.15);
+        
+        const snapOsc = audioCtx.createOscillator();
+        const snapGain = audioCtx.createGain();
+        snapOsc.type = 'sine';
+        snapOsc.frequency.setValueAtTime(2000, t);
+        snapOsc.frequency.exponentialRampToValueAtTime(500, t + 0.02);
+        snapGain.gain.setValueAtTime(0.05, t);
+        snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+        
+        snapOsc.connect(snapGain).connect(audioCtx.destination);
+        snapOsc.start(t);
+        snapOsc.stop(t + 0.03);
     }
 }
 
@@ -201,7 +213,6 @@ function addScore(currentStreak) {
     totalScore += points;
     
     scoreElement.textContent = totalScore.toLocaleString();
-    
     scoreElement.classList.remove('score-bump');
     void scoreElement.offsetWidth; 
     scoreElement.classList.add('score-bump');
