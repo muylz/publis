@@ -143,6 +143,7 @@ body {
     flex-shrink: 0;
 }
 
+/* SCORE STYLES */
 .score-display {
     display: flex;
     flex-direction: column;
@@ -151,14 +152,18 @@ body {
 }
 
 #score-counter {
-    font-size: clamp(2rem, 8vw, 2.5rem);
+    font-size: 2.5rem;
     font-weight: 900;
     color: #ffffff;
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-    /* Removed transform transition so keyframes control the pop */
-    transition: color 0.2s ease; 
+    /* ADDED: color transition */
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease;
     margin-top: 5px;
     font-variant-numeric: tabular-nums;
+}
+
+.score-bump {
+    transform: scale(1.3);
 }
 
 /* Floating Animation */

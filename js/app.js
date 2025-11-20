@@ -19,7 +19,7 @@ const oddsElement = document.getElementById('odds-counter');
 const particlesContainer = document.getElementById('particles');
 const headsTemplate = document.getElementById('heads-svg');
 const tailsTemplate = document.getElementById('tails-svg-clean');
-const scoreDisplayContainer = document.querySelector('.odds-container'); // Floating numbers target
+const scoreDisplayContainer = document.querySelector('.score-display'); 
 
 // --- Initialize UI ---
 streakElement.textContent = streak;
@@ -52,6 +52,7 @@ function buildCoin() {
         coinElement.appendChild(layer);
     }
 
+    // Apply saved rotation
     coinElement.style.transition = 'none';
     coinElement.style.transform = `rotateX(${currentRotation}deg)`;
 }
@@ -69,7 +70,7 @@ function initAudio() {
 async function loadFlipSound() {
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const response = await fetch('assets/flip.mp3'); // Ensure this matches your actual file extension
+        const response = await fetch('assets/flip.mp3');
         const arrayBuffer = await response.arrayBuffer();
         flipBuffer = await audioCtx.decodeAudioData(arrayBuffer);
     } catch (error) {
@@ -90,7 +91,6 @@ function playFlipSound() {
         source.connect(gainNode).connect(audioCtx.destination);
         source.start(0);
     } else {
-        // Fallback Synth
         const t = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -225,10 +225,10 @@ function showFloatingPoints(points) {
     floater.classList.add('score-floater');
     floater.textContent = "+" + points.toLocaleString();
     
-    // Append to the odds container so it flies up from there
-    if (scoreDisplayContainer) {
-        scoreDisplayContainer.appendChild(floater);
-        setTimeout(() => { floater.remove(); }, 1500);
+    const oddsContainer = document.querySelector('.odds-container');
+    if (oddsContainer) {
+        oddsContainer.appendChild(floater);
+        setTimeout(() => { floater.remove(); }, 800);
     }
 }
 
@@ -238,13 +238,11 @@ function addScore(currentStreak) {
     const newScore = totalScore + points;
     
     showFloatingPoints(points);
-    animateScoreValue(oldScore, newScore, 1000);
+    // Rollover duration set to 600ms to match the Green flash timing
+    animateScoreValue(oldScore, newScore, 600);
     
     totalScore = newScore;
     localStorage.setItem('goodluck_score', totalScore);
-    
-    // Removed manual score-bump triggering here
-    // It is now handled via the shared .pop-anim in resolveFlip
 }
 
 function flipCoin() {
@@ -252,7 +250,6 @@ function flipCoin() {
     initAudio();
     isFlipping = true;
     
-    // Reset Animations
     streakElement.classList.remove('pop-anim');
     scoreElement.classList.remove('pop-anim');
     oddsElement.classList.remove('pop-anim');
@@ -296,6 +293,7 @@ function resolveFlip(isHeads) {
         streak++;
         localStorage.setItem('goodluck_streak', streak); 
         
+        // 1. Start Score Math & Rolling (Let addScore handle the numbers)
         addScore(streak);
 
         if (streak > best) {
@@ -304,21 +302,24 @@ function resolveFlip(isHeads) {
             localStorage.setItem('goodluck_best', best);
         }
         
+        // 2. Update Streak Text
         streakElement.textContent = streak;
         
-        // --- UNIFIED WIN ANIMATION ---
-        streakElement.style.color = "var(--green)";
-        scoreElement.style.color = "var(--green)";
-        oddsElement.style.color = "var(--green)";
-        
-        // All 3 get the exact same pop animation class
+        // 3. UNIFIED ANIMATION TRIGGER (Green + Pop)
+        // This applies the class that triggers scale AND color change
         streakElement.classList.add('pop-anim');
         scoreElement.classList.add('pop-anim');
         oddsElement.classList.add('pop-anim');
         
+        // Force color via style to ensure override (optional but safe)
+        streakElement.style.color = "var(--green)";
+        scoreElement.style.color = "var(--green)";
+        oddsElement.style.color = "var(--green)";
+        
         playWinSound(streak);
         createParticles(cx, cy, 'var(--green)');
 
+        // 4. Reset everything after 600ms
         setTimeout(() => {
             streakElement.style.color = "#fff";
             scoreElement.style.color = "#fff";
@@ -335,7 +336,6 @@ function resolveFlip(isHeads) {
 
         streakElement.textContent = 0;
         
-        // Only Streak goes red
         streakElement.style.color = "var(--red)";
         oddsElement.style.color = "var(--red)";
         
