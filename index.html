@@ -88,6 +88,28 @@
             <path d="M18 2l2 2"/>
         </svg>
     </template>
+<!-- ... previous html ... -->
+
+<!-- GAMBLE MODAL -->
+<div id="gamble-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <h2 class="modal-title">HIGH STAKES</h2>
+        <p>Do you want to gamble all <span id="gamble-amount" class="highlight">0</span> points on the next spin?</p>
+        <div class="modal-warning">
+            <span class="win-condition">WIN: 2x Score</span>
+            <span class="lose-condition">LOSE: 0 Score</span>
+        </div>
+        <div class="modal-buttons">
+            <button id="btn-no" class="btn btn-cancel">NO</button>
+            <button id="btn-yes" class="btn btn-confirm">YES</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
 
     <script src="js/app.js"></script>
 </body>

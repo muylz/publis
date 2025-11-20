@@ -2,12 +2,15 @@
 const LAYERS = 24; 
 const THICKNESS_SPREAD = 0.6; 
 
+
 // --- Game State ---
 let streak = parseInt(localStorage.getItem('goodluck_streak')) || 0;
 let best = parseInt(localStorage.getItem('goodluck_best')) || 0;
 let totalScore = parseInt(localStorage.getItem('goodluck_score')) || 0;
 let isFlipping = false;
 let currentRotation = parseInt(localStorage.getItem('goodluck_rotation')) || 0;
+
+let isGambling = false; // New flag
 
 // --- DOM ---
 const coinElement = document.getElementById('coin');
@@ -20,6 +23,10 @@ const particlesContainer = document.getElementById('particles');
 const headsTemplate = document.getElementById('heads-svg');
 const tailsTemplate = document.getElementById('tails-svg-clean');
 const scoreDisplayContainer = document.querySelector('.score-display'); 
+const modal = document.getElementById('gamble-modal');
+const btnYes = document.getElementById('btn-yes');
+const btnNo = document.getElementById('btn-no');
+const gambleAmountText = document.getElementById('gamble-amount');
 
 // --- Initialize UI ---
 streakElement.textContent = streak;
@@ -308,8 +315,28 @@ function resolveFlip(isHeads) {
         streak++;
         localStorage.setItem('goodluck_streak', streak); 
         
-        // 1. Start Score Math & Rolling (Let addScore handle the numbers)
-        addScore(streak);
+        // --- CHANGED: SCORING LOGIC ---
+        let pointsToAdd = 0;
+
+        if (isGambling) {
+            // Win the gamble: Double the TOTAL score
+            // Logic: New Score = Old Score * 2. 
+            // Since animateScoreValue handles transition, we calculate the target.
+            const oldScore = totalScore;
+            const newScore = oldScore * 2;
+            
+            showFloatingPoints(oldScore); // Show "+ [Amount]" (doubled amount)
+            animateScoreValue(oldScore, newScore, 1000); // Slower animation for big win
+            totalScore = newScore;
+            
+            // Reset Gamble Flag
+            isGambling = false;
+            scoreDisplayContainer.classList.remove('gambling');
+        } else {
+            // Standard Play
+            addScore(streak);
+        }
+        // -----------------------------
 
         if (streak > best) {
             best = streak;
@@ -317,16 +344,13 @@ function resolveFlip(isHeads) {
             localStorage.setItem('goodluck_best', best);
         }
         
-        // 2. Update Streak Text
         streakElement.textContent = streak;
         
-        // 3. UNIFIED ANIMATION TRIGGER (Green + Pop)
-        // This applies the class that triggers scale AND color change
+        // Visuals
         streakElement.classList.add('pop-anim');
         scoreElement.classList.add('pop-anim');
         oddsElement.classList.add('pop-anim');
         
-        // Force color via style to ensure override (optional but safe)
         streakElement.style.color = "var(--green)";
         scoreElement.style.color = "var(--green)";
         oddsElement.style.color = "var(--green)";
@@ -334,7 +358,6 @@ function resolveFlip(isHeads) {
         playWinSound(streak);
         createParticles(cx, cy, 'var(--green)');
 
-        // 4. Reset everything after 600ms
         setTimeout(() => {
             streakElement.style.color = "#fff";
             scoreElement.style.color = "#fff";
@@ -346,11 +369,25 @@ function resolveFlip(isHeads) {
         }, 600);
 
     } else {
+        // LOSS
         streak = 0;
         localStorage.setItem('goodluck_streak', streak);
-
         streakElement.textContent = 0;
         
+        // --- CHANGED: LOSS LOGIC ---
+        if (isGambling) {
+            // Lose the gamble: Reset score to 0
+            const oldScore = totalScore;
+            totalScore = 0;
+            animateScoreValue(oldScore, 0, 1000); // Count down to 0
+            
+            // Reset Gamble Flag
+            isGambling = false;
+            scoreDisplayContainer.classList.remove('gambling');
+        }
+        localStorage.setItem('goodluck_score', totalScore);
+        // ---------------------------
+
         streakElement.style.color = "var(--red)";
         oddsElement.style.color = "var(--red)";
         
@@ -370,6 +407,37 @@ function resolveFlip(isHeads) {
     updateOdds(streak);
     isFlipping = false;
 }
+// --- GAMBLE MODAL LOGIC ---
+
+// 1. Open Modal on Score Click
+scoreDisplayContainer.addEventListener('click', (e) => {
+    // Prevent opening if flipping, if score is 0, or if already decided to gamble
+    if (isFlipping || totalScore <= 0 || isGambling) return;
+    
+    // Update text
+    gambleAmountText.textContent = totalScore.toLocaleString();
+    
+    // Show Modal
+    modal.classList.remove('hidden');
+});
+
+// 2. Handle NO
+btnNo.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    isGambling = false;
+});
+
+// 3. Handle YES
+btnYes.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    isGambling = true;
+    
+    // Add visual cue that stakes are high
+    scoreDisplayContainer.classList.add('gambling');
+    
+    // Optional: Play a sound effect here if you have one
+});
+
 
 // Interaction
 sceneElement.addEventListener('mousedown', () => {
