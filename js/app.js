@@ -19,6 +19,7 @@ const oddsElement = document.getElementById('odds-counter');
 const particlesContainer = document.getElementById('particles');
 const headsTemplate = document.getElementById('heads-svg');
 const tailsTemplate = document.getElementById('tails-svg-clean');
+const scoreDisplayContainer = document.querySelector('.score-display'); // For floating text
 
 // --- Initialize UI ---
 streakElement.textContent = streak;
@@ -208,19 +209,54 @@ function updateOdds(currentStreak) {
     oddsElement.textContent = denominator.toLocaleString();
 }
 
+// --- NEW SCORE ANIMATION LOGIC ---
+
+function animateScoreValue(start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        
+        // Simple Linear Interpolation
+        const currentVal = Math.floor(progress * (end - start) + start);
+        scoreElement.textContent = currentVal.toLocaleString();
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            scoreElement.textContent = end.toLocaleString();
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+function showFloatingPoints(points) {
+    const floater = document.createElement('div');
+    floater.classList.add('score-floater');
+    floater.textContent = "+" + points.toLocaleString();
+    scoreDisplayContainer.appendChild(floater);
+    
+    // Clean up div after animation ends
+    setTimeout(() => {
+        floater.remove();
+    }, 1500);
+}
+
 function addScore(currentStreak) {
     const points = Math.pow(2, currentStreak);
-    totalScore += points;
+    const oldScore = totalScore;
+    const newScore = totalScore + points;
     
-    scoreElement.textContent = totalScore.toLocaleString();
-    scoreElement.classList.remove('score-bump');
-    void scoreElement.offsetWidth; 
-    scoreElement.classList.add('score-bump');
+    // 1. Trigger Floating Text
+    showFloatingPoints(points);
     
-    setTimeout(() => {
-        scoreElement.classList.remove('score-bump');
-    }, 200);
+    // 2. Roll the number up (Odometer style)
+    animateScoreValue(oldScore, newScore, 1000); // 1 second duration
     
+    // Update global variable
+    totalScore = newScore;
+    
+    // Save
     localStorage.setItem('goodluck_score', totalScore);
 }
 
@@ -272,6 +308,8 @@ function resolveFlip(isHeads) {
     if (isHeads) {
         streak++;
         localStorage.setItem('goodluck_streak', streak); 
+        
+        // Add Score logic (Floating + Rolling)
         addScore(streak);
 
         if (streak > best) {
@@ -283,29 +321,26 @@ function resolveFlip(isHeads) {
         streakElement.textContent = streak;
         
         streakElement.style.color = "var(--green)";
-        scoreElement.style.color = "var(--green)";
         oddsElement.style.color = "var(--green)";
         
         streakElement.classList.add('pop-anim');
-        scoreElement.classList.add('pop-anim');
         oddsElement.classList.add('pop-anim');
+        // Removed scoreElement 'pop-anim' because it now has the rolling animation
         
         playWinSound(streak);
         createParticles(cx, cy, 'var(--green)');
 
         setTimeout(() => {
             streakElement.style.color = "#fff";
-            scoreElement.style.color = "#fff";
             oddsElement.style.color = "#fff";
-            
             streakElement.classList.remove('pop-anim');
-            scoreElement.classList.remove('pop-anim');
             oddsElement.classList.remove('pop-anim');
         }, 600);
 
     } else {
         streak = 0;
         localStorage.setItem('goodluck_streak', streak);
+
         streakElement.textContent = 0;
         
         streakElement.style.color = "var(--red)";
@@ -328,6 +363,7 @@ function resolveFlip(isHeads) {
     isFlipping = false;
 }
 
+// Interaction
 sceneElement.addEventListener('mousedown', () => {
     if(!isFlipping) coinElement.style.transform = `rotateX(${currentRotation}deg) scale(0.95)`;
 });
