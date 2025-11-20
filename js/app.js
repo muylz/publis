@@ -7,7 +7,7 @@ let streak = parseInt(localStorage.getItem('goodluck_streak')) || 0;
 let best = parseInt(localStorage.getItem('goodluck_best')) || 0;
 let totalScore = parseInt(localStorage.getItem('goodluck_score')) || 0;
 let isFlipping = false;
-let currentRotation = 0;
+let currentRotation = parseInt(localStorage.getItem('goodluck_rotation')) || 0;
 
 // --- DOM ---
 const coinElement = document.getElementById('coin');
@@ -28,6 +28,7 @@ updateOdds(streak);
 
 // --- 1. Build the Solid 3D Stack ---
 function buildCoin() {
+    if (!coinElement) return;
     coinElement.innerHTML = '';
     const startZ = -(LAYERS * THICKNESS_SPREAD) / 2;
 
@@ -37,11 +38,11 @@ function buildCoin() {
         
         if (i === 0) {
             layer.className = 'layer back';
-            layer.appendChild(tailsTemplate.content.cloneNode(true));
+            if(tailsTemplate) layer.appendChild(tailsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px) rotateX(180deg)`;
         } else if (i === LAYERS - 1) {
             layer.className = 'layer front';
-            layer.appendChild(headsTemplate.content.cloneNode(true));
+            if(headsTemplate) layer.appendChild(headsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px)`;
         } else {
             layer.className = 'layer edge';
@@ -49,6 +50,10 @@ function buildCoin() {
         }
         coinElement.appendChild(layer);
     }
+
+    // Apply saved rotation
+    coinElement.style.transition = 'none';
+    coinElement.style.transform = `rotateX(${currentRotation}deg)`;
 }
 buildCoin();
 
@@ -62,37 +67,54 @@ function initAudio() {
 function playFlipSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
-    
+
+    // 1. The "Thock" Body (Deep, woody/plastic impact)
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     const filter = audioCtx.createBiquadFilter();
 
-    osc.type = 'triangle'; 
-    osc.frequency.setValueAtTime(600, t);
-    osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+    osc.type = 'triangle'; // Triangle wave creates a hollow, woody sound
+    // Pitch Sweep: Starts at 300Hz (Low Mid) and drops quickly to 60Hz (Bass)
+    // This removes the "Laser" pew-pew effect which comes from high frequencies
+    osc.frequency.setValueAtTime(300, t); 
+    osc.frequency.exponentialRampToValueAtTime(60, t + 0.1); 
     
+    // Lowpass Filter: This makes it "Milky" by cutting off the buzz
     filter.type = 'lowpass';
-    filter.frequency.value = 3000;
+    filter.frequency.setValueAtTime(800, t); // Start muffled
+    filter.frequency.linearRampToValueAtTime(300, t + 0.1); // Get more muffled
 
+    // Envelope: Fast attack, short sustain
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+    gain.gain.linearRampToValueAtTime(0.8, t + 0.005); // Instant hit
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15); // Short tail
 
     osc.connect(filter).connect(gain).connect(audioCtx.destination);
     osc.start(t);
     osc.stop(t + 0.15);
-    
-    const snapOsc = audioCtx.createOscillator();
-    const snapGain = audioCtx.createGain();
-    snapOsc.type = 'sine';
-    snapOsc.frequency.setValueAtTime(2000, t);
-    snapOsc.frequency.exponentialRampToValueAtTime(500, t + 0.02);
-    snapGain.gain.setValueAtTime(0.05, t);
-    snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
-    
-    snapOsc.connect(snapGain).connect(audioCtx.destination);
-    snapOsc.start(t);
-    snapOsc.stop(t + 0.03);
+
+    // 2. The Texture (Filtered Noise for the "Click")
+    // Instead of a sine wave "ping", we use noise to simulate physical friction
+    const bufferSize = audioCtx.sampleRate * 0.1; 
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1; // White noise
+    }
+
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const noiseGain = audioCtx.createGain();
+    const noiseFilter = audioCtx.createBiquadFilter();
+
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.value = 1200; // Cut the hiss, keep the "thud"
+
+    noiseGain.gain.setValueAtTime(0.3, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.05); // Very short burst
+
+    noise.connect(noiseFilter).connect(noiseGain).connect(audioCtx.destination);
+    noise.start(t);
 }
 
 function playWinSound(streakCount) {
@@ -121,6 +143,7 @@ function playLoseSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
     
+    // Hollow Drop
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     const osc2 = audioCtx.createOscillator();
@@ -183,6 +206,19 @@ function updateOdds(currentStreak) {
 function addScore(currentStreak) {
     const points = Math.pow(2, currentStreak);
     totalScore += points;
+    
+    scoreElement.textContent = totalScore.toLocaleString();
+    
+    // Trigger Pop Animation
+    scoreElement.classList.remove('score-bump');
+    void scoreElement.offsetWidth; // Force reflow
+    scoreElement.classList.add('score-bump');
+    
+    // Remove the class after 200ms so it shrinks back down
+    setTimeout(() => {
+        scoreElement.classList.remove('score-bump');
+    }, 200);
+    
     localStorage.setItem('goodluck_score', totalScore);
 }
 
@@ -214,6 +250,7 @@ function flipCoin() {
     }
 
     currentRotation = target;
+    localStorage.setItem('goodluck_rotation', currentRotation); // Save rotation
 
     coinElement.style.transition = 'transform 2.5s cubic-bezier(0.15, 0, 0.10, 1)';
     coinElement.style.transform = `rotateX(${currentRotation}deg)`;
