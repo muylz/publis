@@ -51,7 +51,6 @@ function buildCoin() {
         coinElement.appendChild(layer);
     }
 
-    // Apply saved rotation
     coinElement.style.transition = 'none';
     coinElement.style.transform = `rotateX(${currentRotation}deg)`;
 }
@@ -59,72 +58,59 @@ buildCoin();
 
 // --- 2. Audio Engine ---
 let audioCtx;
+let flipBuffer = null; // This will hold your custom sound
+
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
+// --- NEW: Load your custom sound file ---
+async function loadFlipSound() {
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // FETCH THE FILE (Make sure the name matches your file!)
+        const response = await fetch('assets/flip.wav');
+        const arrayBuffer = await response.arrayBuffer();
+        
+        // Decode it into audio data
+        flipBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        console.log("Custom flip sound loaded!");
+    } catch (error) {
+        console.error("Error loading flip sound:", error);
+    }
+}
+// Load it immediately
+loadFlipSound();
+
 function playFlipSound() {
     if (!audioCtx) return;
-    const t = audioCtx.currentTime;
 
-    // 1. The "Ting" (Metallic Ring)
-    // Metal sounds are "inharmonic" (multiple tones that don't quite match).
-    // We create two sine waves at high frequencies to simulate this.
-    
-    // Main Tone (High Ring)
-    const osc1 = audioCtx.createOscillator();
-    const gain1 = audioCtx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(2000, t); // High pitch
-    osc1.frequency.exponentialRampToValueAtTime(1500, t + 0.2); // Slight drop (Doppler effect)
-
-    // Secondary Tone (Dissonance for Metal texture)
-    const osc2 = audioCtx.createOscillator();
-    const gain2 = audioCtx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(3500, t); // Very high overtone
-    osc2.frequency.exponentialRampToValueAtTime(3000, t + 0.2);
-    
-    // Envelope: Fast attack, medium decay
-    gain1.gain.setValueAtTime(0, t);
-    gain1.gain.linearRampToValueAtTime(0.15, t + 0.01); // Gentle attack
-    gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.3); // Ring out
-
-    gain2.gain.setValueAtTime(0, t);
-    gain2.gain.linearRampToValueAtTime(0.05, t + 0.01); // Quieter overtone
-    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.15); // Decays faster
-
-    osc1.connect(gain1).connect(audioCtx.destination);
-    osc2.connect(gain2).connect(audioCtx.destination);
-    
-    osc1.start(t);
-    osc2.start(t);
-    osc1.stop(t + 0.3);
-    osc2.stop(t + 0.3);
-
-    // 2. The "Click" (Impact)
-    // A tiny burst of filtered noise to sound like it hitting your thumb nail
-    const bufferSize = audioCtx.sampleRate * 0.05; // 50ms buffer
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
+    if (flipBuffer) {
+        // Play your custom file
+        const source = audioCtx.createBufferSource();
+        source.buffer = flipBuffer;
+        
+        // Randomize pitch slightly for realism (0.95x to 1.05x speed)
+        source.playbackRate.value = 0.95 + Math.random() * 0.1;
+        
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = 0.8; // Volume adjustment
+        
+        source.connect(gainNode).connect(audioCtx.destination);
+        source.start(0);
+    } else {
+        // Fallback if file hasn't loaded yet (Basic Click)
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
     }
-
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-    const noiseGain = audioCtx.createGain();
-    const noiseFilter = audioCtx.createBiquadFilter();
-
-    noiseFilter.type = 'highpass';
-    noiseFilter.frequency.value = 1000; // Remove rumble, keep the click
-
-    noiseGain.gain.setValueAtTime(0.4, t);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02); // Instant snap
-
-    noise.connect(noiseFilter).connect(noiseGain).connect(audioCtx.destination);
-    noise.start(t);
 }
 
 function playWinSound(streakCount) {
@@ -153,7 +139,6 @@ function playLoseSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
     
-    // Hollow Drop
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     const osc2 = audioCtx.createOscillator();
@@ -212,19 +197,16 @@ function updateOdds(currentStreak) {
     oddsElement.textContent = denominator.toLocaleString();
 }
 
-// --- SCORE LOGIC ---
 function addScore(currentStreak) {
     const points = Math.pow(2, currentStreak);
     totalScore += points;
     
     scoreElement.textContent = totalScore.toLocaleString();
     
-    // Trigger Pop Animation
     scoreElement.classList.remove('score-bump');
-    void scoreElement.offsetWidth; // Force reflow
+    void scoreElement.offsetWidth; 
     scoreElement.classList.add('score-bump');
     
-    // Remove the class after 200ms so it shrinks back down
     setTimeout(() => {
         scoreElement.classList.remove('score-bump');
     }, 200);
@@ -237,7 +219,6 @@ function flipCoin() {
     initAudio();
     isFlipping = true;
     
-    // Remove animations instantly when flip starts
     streakElement.classList.remove('pop-anim');
     scoreElement.classList.remove('pop-anim');
     document.body.classList.remove('shake-anim');
@@ -279,7 +260,6 @@ function resolveFlip(isHeads) {
         streak++;
         localStorage.setItem('goodluck_streak', streak); 
 
-        // Update Score Data
         addScore(streak);
 
         if (streak > best) {
@@ -288,25 +268,17 @@ function resolveFlip(isHeads) {
             localStorage.setItem('goodluck_best', best);
         }
         
-        // 1. Update Text
         streakElement.textContent = streak;
-        scoreElement.textContent = totalScore.toLocaleString();
-
-        // 2. Apply Green Color & Animation to BOTH
         streakElement.style.color = "var(--green)";
-        scoreElement.style.color = "var(--green)";
-        
         streakElement.classList.add('pop-anim');
         scoreElement.classList.add('pop-anim');
         
         playWinSound(streak);
         createParticles(cx, cy, 'var(--green)');
 
-        // 3. Reset BOTH to white after animation
         setTimeout(() => {
             streakElement.style.color = "#fff";
             scoreElement.style.color = "#fff";
-            
             streakElement.classList.remove('pop-anim');
             scoreElement.classList.remove('pop-anim');
         }, 600);
@@ -316,8 +288,6 @@ function resolveFlip(isHeads) {
         localStorage.setItem('goodluck_streak', streak);
 
         streakElement.textContent = 0;
-        
-        // Only Streak goes red on loss
         streakElement.style.color = "var(--red)";
         
         document.body.classList.add('shake-anim');
