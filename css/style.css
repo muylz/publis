@@ -111,7 +111,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 30px; /* Space between Score and Odds Tower */
+    gap: 30px; 
     z-index: 10;
 }
 
@@ -120,7 +120,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: relative; /* Anchor for floating text */
+    /* Critical for positioning the floating text relative to this box */
+    position: relative; 
+    overflow: visible; /* Allow numbers to fly out */
 }
 
 #score-counter {
@@ -137,13 +139,13 @@ body {
     transform: scale(1.3);
 }
 
-/* --- FLOATING POINTS ANIMATION (RIGHT) --- */
+/* --- UPDATED FLOATING POINTS ANIMATION (RIGHT) --- */
 .score-floater {
     position: absolute;
     top: 50%; 
-    left: 50%;
-    /* Initial State: Centered on the number */
-    transform: translate(-50%, -50%);
+    left: 100%; /* Start at the right edge of the score */
+    transform: translate(0, -50%); /* Vertically centered */
+    
     font-size: 1.5rem;
     font-weight: 900;
     color: var(--green);
@@ -151,24 +153,26 @@ body {
     pointer-events: none;
     opacity: 0;
     white-space: nowrap;
-    animation: floatRightFade 1.5s ease-out forwards;
+    
+    /* Animation Name Updated */
+    animation: floatRightSide 1.2s ease-out forwards;
 }
 
-@keyframes floatRightFade {
+@keyframes floatRightSide {
     0% {
         opacity: 0;
-        /* Start: Center of Score */
-        transform: translate(-50%, -50%) scale(0.5);
+        /* Start slightly inside the score to pop out */
+        transform: translate(-20px, -50%) scale(0.5); 
     }
     20% {
         opacity: 1;
-        /* Move Right (+50px) */
-        transform: translate(50px, -50%) scale(1.2);
+        /* Pop to the right */
+        transform: translate(15px, -50%) scale(1.2); 
     }
     100% {
         opacity: 0;
-        /* Drift further Right (+100px) and fade */
-        transform: translate(100px, -50%) scale(1);
+        /* Drift further right and fade */
+        transform: translate(60px, -50%) scale(1); 
     }
 }
 /* ---------------------------------------- */

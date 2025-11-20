@@ -19,7 +19,8 @@ const oddsElement = document.getElementById('odds-counter');
 const particlesContainer = document.getElementById('particles');
 const headsTemplate = document.getElementById('heads-svg');
 const tailsTemplate = document.getElementById('tails-svg-clean');
-const scoreDisplayContainer = document.querySelector('.score-display'); // For floating text
+// Select the wrapper to append floating text
+const scoreDisplayContainer = document.querySelector('.score-display'); 
 
 // --- Initialize UI ---
 streakElement.textContent = streak;
@@ -209,18 +210,14 @@ function updateOdds(currentStreak) {
     oddsElement.textContent = denominator.toLocaleString();
 }
 
-// --- NEW SCORE ANIMATION LOGIC ---
-
+// --- SCORE ANIMATION LOGIC ---
 function animateScoreValue(start, end, duration) {
     let startTimestamp = null;
     const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        
-        // Simple Linear Interpolation
         const currentVal = Math.floor(progress * (end - start) + start);
         scoreElement.textContent = currentVal.toLocaleString();
-        
         if (progress < 1) {
             window.requestAnimationFrame(step);
         } else {
@@ -234,12 +231,12 @@ function showFloatingPoints(points) {
     const floater = document.createElement('div');
     floater.classList.add('score-floater');
     floater.textContent = "+" + points.toLocaleString();
-    scoreDisplayContainer.appendChild(floater);
     
-    // Clean up div after animation ends
-    setTimeout(() => {
-        floater.remove();
-    }, 1500);
+    // Check if container exists
+    if (scoreDisplayContainer) {
+        scoreDisplayContainer.appendChild(floater);
+        setTimeout(() => { floater.remove(); }, 1500);
+    }
 }
 
 function addScore(currentStreak) {
@@ -247,16 +244,10 @@ function addScore(currentStreak) {
     const oldScore = totalScore;
     const newScore = totalScore + points;
     
-    // 1. Trigger Floating Text
     showFloatingPoints(points);
+    animateScoreValue(oldScore, newScore, 1000);
     
-    // 2. Roll the number up (Odometer style)
-    animateScoreValue(oldScore, newScore, 1000); // 1 second duration
-    
-    // Update global variable
     totalScore = newScore;
-    
-    // Save
     localStorage.setItem('goodluck_score', totalScore);
 }
 
@@ -269,7 +260,6 @@ function flipCoin() {
     scoreElement.classList.remove('pop-anim');
     oddsElement.classList.remove('pop-anim');
     oddsElement.classList.remove('shake-anim');
-    
     document.body.classList.remove('shake-anim');
 
     const isHeads = Math.random() > 0.5;
@@ -309,7 +299,6 @@ function resolveFlip(isHeads) {
         streak++;
         localStorage.setItem('goodluck_streak', streak); 
         
-        // Add Score logic (Floating + Rolling)
         addScore(streak);
 
         if (streak > best) {
@@ -325,7 +314,6 @@ function resolveFlip(isHeads) {
         
         streakElement.classList.add('pop-anim');
         oddsElement.classList.add('pop-anim');
-        // Removed scoreElement 'pop-anim' because it now has the rolling animation
         
         playWinSound(streak);
         createParticles(cx, cy, 'var(--green)');
