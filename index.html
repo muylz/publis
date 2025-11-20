@@ -33,7 +33,6 @@
             </svg>
         </div>
 
-        <!-- TOP STATS -->
         <div class="counter-box">
             <div class="label">Current Streak</div>
             <div id="streak-counter">0</div>
@@ -41,21 +40,28 @@
         <div class="best-score">Best: <span id="best-counter">0</span></div>
     </div>
 
-    <!-- COIN -->
     <div class="scene" id="scene">
-        <div class="coin" id="coin"></div>
+        <div class="coin" id="coin">
+            <!-- 3D Stack injected via JS -->
+        </div>
     </div>
 
-    <!-- BOTTOM STATS -->
+    <!-- BOTTOM STATS (Score + Odds Tower) -->
     <div class="bottom-stats">
+        
+        <!-- Score -->
         <div class="score-display">
             <div class="label">Total Score</div>
             <div id="score-counter">0</div>
         </div>
 
+        <!-- Odds Tower -->
         <div class="odds-container">
-            1 in <span class="odds-value" id="odds-counter">2</span>
+            <div class="odds-static">1</div>
+            <div class="odds-label">IN</div>
+            <div class="odds-value" id="odds-counter">2</div>
         </div>
+
     </div>
 
     <div id="particles"></div>

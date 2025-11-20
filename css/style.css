@@ -85,20 +85,15 @@ body {
     text-align: center;
 }
 
-/* ANIMATED COUNTERS */
-#streak-counter, #score-counter, #odds-counter {
-    font-weight: 900;
-    color: #fff;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    /* Shared Animation Physics */
-    transition: color 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
 #streak-counter {
     font-size: 7rem;
+    font-weight: 900;
     line-height: 0.9;
+    color: #fff;
     text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    transition: color 0.2s ease; 
 }
 
 .best-score {
@@ -110,16 +105,17 @@ body {
     text-align: center;
 }
 
-/* BOTTOM UI */
+/* BOTTOM STATS WRAPPER */
 .bottom-stats {
     margin-top: 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 30px; /* Space between Score and Odds Tower */
     z-index: 10;
 }
 
+/* SCORE STYLES */
 .score-display {
     display: flex;
     flex-direction: column;
@@ -128,8 +124,10 @@ body {
 
 #score-counter {
     font-size: 2.5rem;
+    font-weight: 900;
     color: #ffffff;
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     margin-top: 5px;
 }
 
@@ -137,22 +135,34 @@ body {
     transform: scale(1.3);
 }
 
+/* ODDS TOWER STYLES */
 .odds-container {
-    margin-top: 80px;
-    font-size: 1.2rem; /* Increased Size */
-    color: #6272a4;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-align: center;
-    text-transform: uppercase;
     display: flex;
-    align-items: baseline;
-    gap: 8px;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
 }
 
-#odds-counter {
-    font-size: 1.8rem; /* Bigger Number */
-    display: inline-block;
+.odds-static {
+    font-size: 1.2rem;
+    color: #6272a4; /* Dracula Purple/Grey */
+    font-weight: 800;
+}
+
+.odds-label {
+    font-size: 0.7rem;
+    color: #bd93f9;
+    opacity: 0.7;
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin: 2px 0;
+}
+
+.odds-value {
+    font-size: 2.0rem; /* Big Number */
+    color: #fff;
+    font-weight: 900;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease;
 }
 
 /* COIN ENGINE */
