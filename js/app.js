@@ -2,17 +2,15 @@
 const LAYERS = 24; 
 const THICKNESS_SPREAD = 0.6; 
 
-
 // --- Game State ---
 let streak = parseInt(localStorage.getItem('goodluck_streak')) || 0;
 let best = parseInt(localStorage.getItem('goodluck_best')) || 0;
 let totalScore = parseInt(localStorage.getItem('goodluck_score')) || 0;
 let isFlipping = false;
+let isGambling = false; // Track if "High Stakes" is active
 let currentRotation = parseInt(localStorage.getItem('goodluck_rotation')) || 0;
 
-let isGambling = false; // New flag
-
-// --- DOM ---
+// --- DOM Elements ---
 const coinElement = document.getElementById('coin');
 const sceneElement = document.getElementById('scene');
 const streakElement = document.getElementById('streak-counter');
@@ -22,11 +20,13 @@ const oddsElement = document.getElementById('odds-counter');
 const particlesContainer = document.getElementById('particles');
 const headsTemplate = document.getElementById('heads-svg');
 const tailsTemplate = document.getElementById('tails-svg-clean');
-const scoreDisplayContainer = document.querySelector('.score-display'); 
+
+// Gamble Elements
 const modal = document.getElementById('gamble-modal');
 const btnYes = document.getElementById('btn-yes');
 const btnNo = document.getElementById('btn-no');
 const gambleAmountText = document.getElementById('gamble-amount');
+const scoreDisplayContainer = document.querySelector('.score-display'); 
 
 // --- Initialize UI ---
 streakElement.textContent = streak;
@@ -70,72 +70,46 @@ let audioCtx;
 let flipBuffer = null;
 
 function initAudio() {
-    // Create context if it doesn't exist
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    // Resume if suspended (browser autoplay policy)
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
 async function loadFlipSound() {
     try {
-        // Initialize context to decode data
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // --- CHANGE: Point to the .wav file ---
-        const response = await fetch('assets/flip.wav');
-        
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
+        const response = await fetch('assets/flip.wav'); // Using WAV now
+        if (!response.ok) throw new Error('Network response was not ok');
         const arrayBuffer = await response.arrayBuffer();
         flipBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-        console.log("Flip sound loaded successfully");
     } catch (error) {
-        console.warn("Error loading flip.wav, reverting to synthesizer:", error);
+        console.log("Audio load failed or waiting for interaction:", error);
     }
 }
-// Load immediately
 loadFlipSound();
 
 function playFlipSound() {
     if (!audioCtx) return;
 
     if (flipBuffer) {
-        // --- SAMPLE PLAYBACK ---
         const source = audioCtx.createBufferSource();
         source.buffer = flipBuffer;
-        
-        // Randomize pitch slightly (0.95x to 1.05x) so it doesn't sound robotic
         source.playbackRate.value = 0.95 + Math.random() * 0.1;
-        
-        // Create a Gain Node (Volume)
         const gainNode = audioCtx.createGain();
-        gainNode.gain.value = 0.6; // Adjust this (0.0 to 1.0) if the WAV is too loud
-        
+        gainNode.gain.value = 0.6; 
         source.connect(gainNode).connect(audioCtx.destination);
         source.start(0);
     } else {
-        // --- FALLBACK SYNTHESIZER (If wav fails to load) ---
+        // Fallback Synth
         const t = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        const filter = audioCtx.createBiquadFilter();
-        
         osc.type = 'triangle'; 
         osc.frequency.setValueAtTime(600, t);
         osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-        
-        filter.type = 'lowpass';
-        filter.frequency.value = 3000;
-        
         gain.gain.setValueAtTime(0, t);
         gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
         gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-        
-        osc.connect(filter).connect(gain).connect(audioCtx.destination);
+        osc.connect(gain).connect(audioCtx.destination);
         osc.start(t);
         osc.stop(t + 0.15);
     }
@@ -144,7 +118,6 @@ function playFlipSound() {
 function playWinSound(streakCount) {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
-    
     const baseFreqs = [261.63, 329.63, 392.00]; 
     const multiplier = 1 + (Math.min(streakCount, 12) * 0.05);
 
@@ -153,7 +126,6 @@ function playWinSound(streakCount) {
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.value = freq * multiplier;
-        
         gain.gain.setValueAtTime(0, t);
         gain.gain.linearRampToValueAtTime(0.05, t + 0.1 + (i*0.05)); 
         gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
@@ -166,7 +138,6 @@ function playWinSound(streakCount) {
 function playLoseSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
-    
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     const osc2 = audioCtx.createOscillator();
@@ -175,7 +146,6 @@ function playLoseSound() {
     osc1.type = 'sine';
     osc1.frequency.setValueAtTime(180, t);
     osc1.frequency.exponentialRampToValueAtTime(50, t + 0.6);
-    
     osc2.type = 'sine';
     osc2.frequency.setValueAtTime(170, t); 
     osc2.frequency.exponentialRampToValueAtTime(45, t + 0.6);
@@ -187,7 +157,6 @@ function playLoseSound() {
 
     osc1.connect(gain1).connect(audioCtx.destination);
     osc2.connect(gain2).connect(audioCtx.destination);
-    
     osc1.start(t);
     osc2.start(t);
     osc1.stop(t + 0.7);
@@ -260,13 +229,13 @@ function addScore(currentStreak) {
     const newScore = totalScore + points;
     
     showFloatingPoints(points);
-    // Rollover duration set to 600ms to match the Green flash timing
     animateScoreValue(oldScore, newScore, 600);
     
     totalScore = newScore;
     localStorage.setItem('goodluck_score', totalScore);
 }
 
+// --- FLIP LOGIC ---
 function flipCoin() {
     if (isFlipping) return;
     initAudio();
@@ -285,7 +254,6 @@ function flipCoin() {
     const degrees = spins * 360;
     
     let target = currentRotation + degrees;
-    
     const currentMod = currentRotation % 360;
     const isCurrentlyHeads = (Math.abs(currentMod) < 1 || Math.abs(currentMod - 360) < 1);
 
@@ -315,29 +283,24 @@ function resolveFlip(isHeads) {
         streak++;
         localStorage.setItem('goodluck_streak', streak); 
         
-        // --- CHANGED: SCORING LOGIC ---
-        let pointsToAdd = 0;
-
+        // --- GAMBLE WIN LOGIC ---
         if (isGambling) {
-            // Win the gamble: Double the TOTAL score
-            // Logic: New Score = Old Score * 2. 
-            // Since animateScoreValue handles transition, we calculate the target.
             const oldScore = totalScore;
             const newScore = oldScore * 2;
             
-            showFloatingPoints(oldScore); // Show "+ [Amount]" (doubled amount)
-            animateScoreValue(oldScore, newScore, 1000); // Slower animation for big win
+            showFloatingPoints(oldScore);
+            animateScoreValue(oldScore, newScore, 1000);
             totalScore = newScore;
+            localStorage.setItem('goodluck_score', totalScore);
             
-            // Reset Gamble Flag
+            // Reset Gamble
             isGambling = false;
             scoreDisplayContainer.classList.remove('gambling');
         } else {
-            // Standard Play
+            // Standard Win
             addScore(streak);
         }
-        // -----------------------------
-
+        
         if (streak > best) {
             best = streak;
             bestElement.textContent = best;
@@ -345,8 +308,6 @@ function resolveFlip(isHeads) {
         }
         
         streakElement.textContent = streak;
-        
-        // Visuals
         streakElement.classList.add('pop-anim');
         scoreElement.classList.add('pop-anim');
         oddsElement.classList.add('pop-anim');
@@ -374,19 +335,16 @@ function resolveFlip(isHeads) {
         localStorage.setItem('goodluck_streak', streak);
         streakElement.textContent = 0;
         
-        // --- CHANGED: LOSS LOGIC ---
+        // --- GAMBLE LOSS LOGIC ---
         if (isGambling) {
-            // Lose the gamble: Reset score to 0
             const oldScore = totalScore;
             totalScore = 0;
-            animateScoreValue(oldScore, 0, 1000); // Count down to 0
+            animateScoreValue(oldScore, 0, 1000);
             
-            // Reset Gamble Flag
             isGambling = false;
             scoreDisplayContainer.classList.remove('gambling');
         }
         localStorage.setItem('goodluck_score', totalScore);
-        // ---------------------------
 
         streakElement.style.color = "var(--red)";
         oddsElement.style.color = "var(--red)";
@@ -407,37 +365,8 @@ function resolveFlip(isHeads) {
     updateOdds(streak);
     isFlipping = false;
 }
-// Locate this section in your app.js (around the bottom)
 
-// 1. Open Modal on Score Click
-scoreDisplayContainer.addEventListener('click', (e) => {
-    // Prevent opening if flipping, score is 0, or already gambling
-    if (isFlipping || totalScore <= 0 || isGambling) return;
-    
-    // --- UPDATE TEXT CONTENT HERE ---
-    // This puts the actual score into the pop-up text
-    gambleAmountText.textContent = totalScore.toLocaleString();
-    
-    // Show Modal
-    modal.classList.remove('hidden');
-});
-
-// 2. Handle NO
-btnNo.addEventListener('click', () => {
-    modal.classList.add('hidden');
-    isGambling = false;
-});
-
-// 3. Handle YES
-btnYes.addEventListener('click', () => {
-    modal.classList.add('hidden');
-    isGambling = true;
-    
-    // Visual cue: Turn the score Gold to show risk is active
-    scoreDisplayContainer.classList.add('gambling');
-});
-
-// Interaction
+// --- EVENTS ---
 sceneElement.addEventListener('mousedown', () => {
     if(!isFlipping) coinElement.style.transform = `rotateX(${currentRotation}deg) scale(0.95)`;
 });
@@ -451,7 +380,6 @@ sceneElement.addEventListener('touchstart', (e) => {
     e.preventDefault();
     if(!isFlipping) flipCoin();
 });
-
 window.addEventListener('keydown', (e) => {
     if(e.code === 'Space') {
         if(!isFlipping) coinElement.style.transform = `rotateX(${currentRotation}deg) scale(0.95)`;
@@ -465,3 +393,30 @@ window.addEventListener('keyup', (e) => {
         }
     }
 });
+
+// --- GAMBLE EVENTS ---
+scoreDisplayContainer.addEventListener('click', () => {
+    // Check safety conditions
+    if (isFlipping || totalScore <= 0 || isGambling) return;
+    
+    // Update text
+    if(gambleAmountText) gambleAmountText.textContent = totalScore.toLocaleString();
+    
+    // Show
+    if(modal) modal.classList.remove('hidden');
+});
+
+if(btnNo) {
+    btnNo.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        isGambling = false;
+    });
+}
+
+if(btnYes) {
+    btnYes.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        isGambling = true;
+        scoreDisplayContainer.classList.add('gambling');
+    });
+}
