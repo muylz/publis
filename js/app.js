@@ -6,10 +6,8 @@ const THICKNESS_SPREAD = 0.6;
 let streak = parseInt(localStorage.getItem('goodluck_streak')) || 0;
 let best = parseInt(localStorage.getItem('goodluck_best')) || 0;
 let totalScore = parseInt(localStorage.getItem('goodluck_score')) || 0;
-// LOAD SAVED ROTATION (Default to 0 if new)
-let currentRotation = parseInt(localStorage.getItem('goodluck_rotation')) || 0;
 let isFlipping = false;
-
+let currentRotation = 0;
 
 // --- DOM ---
 const coinElement = document.getElementById('coin');
@@ -38,23 +36,22 @@ function buildCoin() {
         const currentZ = startZ + (i * THICKNESS_SPREAD);
         
         if (i === 0) {
+            // Back Face (Tails)
             layer.className = 'layer back';
             layer.appendChild(tailsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px) rotateX(180deg)`;
         } else if (i === LAYERS - 1) {
+            // Front Face (Heads)
             layer.className = 'layer front';
             layer.appendChild(headsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px)`;
         } else {
+            // Edge
             layer.className = 'layer edge';
             layer.style.transform = `translateZ(${currentZ}px)`;
         }
         coinElement.appendChild(layer);
     }
-
-    // --- CRITICAL FIX: Apply saved rotation immediately without animation ---
-    coinElement.style.transition = 'none';
-    coinElement.style.transform = `rotateX(${currentRotation}deg)`;
 }
 buildCoin();
 
@@ -185,14 +182,22 @@ function updateOdds(currentStreak) {
     oddsElement.textContent = denominator.toLocaleString();
 }
 
+// --- SCORE LOGIC (FIXED) ---
 function addScore(currentStreak) {
     const points = Math.pow(2, currentStreak);
     totalScore += points;
     
     scoreElement.textContent = totalScore.toLocaleString();
+    
+    // Trigger Pop Animation
     scoreElement.classList.remove('score-bump');
-    void scoreElement.offsetWidth; 
+    void scoreElement.offsetWidth; // Force reflow
     scoreElement.classList.add('score-bump');
+    
+    // Fix: Remove the class after 200ms so it shrinks back down
+    setTimeout(() => {
+        scoreElement.classList.remove('score-bump');
+    }, 200);
     
     localStorage.setItem('goodluck_score', totalScore);
 }
@@ -223,9 +228,6 @@ function flipCoin() {
     }
 
     currentRotation = target;
-    
-    // SAVE ROTATION STATE
-    localStorage.setItem('goodluck_rotation', currentRotation);
 
     coinElement.style.transition = 'transform 2.5s cubic-bezier(0.15, 0, 0.10, 1)';
     coinElement.style.transform = `rotateX(${currentRotation}deg)`;
