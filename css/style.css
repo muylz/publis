@@ -401,24 +401,28 @@ body {
     box-shadow: 0 0 15px rgba(241, 250, 140, 0.4);
 }
 
-/* --- GAMBLE MODAL OVERLAY --- */
+/* --- GAMBLE MODAL (POP-UP) --- */
 .modal {
-    display: flex;            /* activates flex centering */
-    position: fixed;          /* floats on top of everything */
+    position: fixed;
     top: 0; 
     left: 0;
     width: 100%; 
     height: 100%;
-    z-index: 9999;            /* ensures it's on top of the coin */
+    z-index: 9999;
+    display: flex;
     justify-content: center;
     align-items: center;
+    
+    /* Hiding/Showing logic */
     opacity: 1;
-    transition: opacity 0.2s ease;
+    pointer-events: all;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(4px); /* Blurs the background */
 }
 
-/* This class hides the modal completely */
 .modal.hidden {
-    display: none !important; 
+    opacity: 0;
+    pointer-events: none;
 }
 
 .modal-overlay {
@@ -427,56 +431,89 @@ body {
     left: 0;
     width: 100%; 
     height: 100%;
-    background: rgba(0, 0, 0, 0.85); /* Dark background dimming */
-    backdrop-filter: blur(5px);      /* Blurs the game behind it */
+    background: rgba(24, 22, 33, 0.85); /* Dark theme opacity */
 }
 
 .modal-content {
     position: relative;
     z-index: 10000;
-    width: 90%;
-    max-width: 350px;
-    background: #383447;     /* Matches your Dracula Theme */
-    border: 2px solid #f1fa8c; /* Gold border */
-    border-radius: 15px;
-    padding: 25px;
+    width: 85%;
+    max-width: 380px;
+    background: var(--bg-center);
+    border: 2px solid var(--gold);
+    border-radius: 20px;
+    padding: 30px 25px;
     text-align: center;
-    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    
+    /* Pop Animation */
+    transform: scale(1);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal.hidden .modal-content {
+    transform: scale(0.7); /* Starts small when hidden */
 }
 
 .modal-title {
-    color: #f1fa8c; /* Gold */
-    margin-top: 0;
+    margin: 0 0 15px 0;
+    color: var(--gold);
     font-family: 'Arial Black', sans-serif;
+    font-size: 1.6rem;
     text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(241, 250, 140, 0.3);
 }
 
-.modal-warning {
-    font-size: 0.8rem;
-    background: rgba(0,0,0,0.3);
-    padding: 10px;
-    border-radius: 5px;
-    margin: 15px 0;
-    display: flex; 
-    justify-content: space-between;
-    font-weight: bold;
+.modal-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: var(--text-color);
+    font-weight: 500;
 }
 
+#gamble-amount {
+    color: var(--green); /* Make the number stand out */
+    font-weight: 900;
+    font-size: 1.3rem;
+}
+
+/* --- BUTTONS --- */
 .modal-buttons {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     justify-content: center;
-    margin-top: 20px;
 }
 
 .btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
+    flex: 1;
+    padding: 12px 0;
     font-size: 1rem;
+    font-weight: 800;
+    border-radius: 12px;
+    cursor: pointer;
+    border: none;
+    text-transform: uppercase;
+    transition: transform 0.1s, filter 0.2s;
 }
 
-.btn-confirm { background: #50fa7b; color: #181621; } /* Green */
-.btn-cancel { background: #ff5555; color: white; }    /* Red */
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-cancel {
+    background-color: #44475a;
+    color: #f8f8f2;
+    border: 2px solid #6272a4;
+}
+
+.btn-confirm {
+    background-color: var(--gold);
+    color: var(--bg-edge);
+    box-shadow: 0 0 15px rgba(241, 250, 140, 0.4);
+}
+
+.btn-confirm:hover {
+    filter: brightness(1.1);
+}

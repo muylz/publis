@@ -407,33 +407,34 @@ function resolveFlip(isHeads) {
     updateOdds(streak);
     isFlipping = false;
 }
-// --- GAMBLE MODAL LOGIC ---
+// Locate this section in your app.js (around the bottom)
 
-// 2. The Trigger: Click Score -> Open Modal
-scoreDisplay.addEventListener('click', (e) => {
-    // Don't allow gambling if score is 0 or if already flipping
-    if (totalScore <= 0 || isFlipping) return;
-
-    // Update the text inside the pop-up to match current score
-    gambleAmountSpan.textContent = totalScore.toLocaleString();
-
-    // Show the modal
+// 1. Open Modal on Score Click
+scoreDisplayContainer.addEventListener('click', (e) => {
+    // Prevent opening if flipping, score is 0, or already gambling
+    if (isFlipping || totalScore <= 0 || isGambling) return;
+    
+    // --- UPDATE TEXT CONTENT HERE ---
+    // This puts the actual score into the pop-up text
+    gambleAmountText.textContent = totalScore.toLocaleString();
+    
+    // Show Modal
     modal.classList.remove('hidden');
 });
 
-// 3. Button: NO -> Close Modal
+// 2. Handle NO
 btnNo.addEventListener('click', () => {
     modal.classList.add('hidden');
     isGambling = false;
 });
 
-// 4. Button: YES -> Set Flag and Close
+// 3. Handle YES
 btnYes.addEventListener('click', () => {
     modal.classList.add('hidden');
     isGambling = true;
     
-    // Optional: Visual indicator that gambling is active
-    scoreElement.style.color = "#f1fa8c"; // Turn score Gold
+    // Visual cue: Turn the score Gold to show risk is active
+    scoreDisplayContainer.classList.add('gambling');
 });
 
 // Interaction

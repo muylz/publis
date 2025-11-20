@@ -93,31 +93,23 @@
 <body>
    <!-- ... all your game divs ... -->
 
-   <!-- PLACE THIS AT THE VERY END, JUST BEFORE SCRIPT -->
-   <div id="gamble-modal" class="modal hidden">
-       <div class="modal-overlay"></div>
-       <div class="modal-content">
-           <h2 class="modal-title">High Stakes</h2>
-           <p>Do you want to gamble all <span id="gamble-amount" style="color:#bd93f9; font-weight:bold;">0</span> points on the next spin?</p>
-           
-           <div class="modal-warning">
-               <span style="color:#50fa7b">WIN: Double Score</span>
-               <span style="color:#ff5555">LOSE: Zero Score</span>
-           </div>
-
-           <div class="modal-buttons">
-               <button id="btn-no" class="btn btn-cancel">NO</button>
-               <button id="btn-yes" class="btn btn-confirm">YES</button>
-           </div>
-       </div>
-   </div>
-
-   <script src="js/app.js"></script>
-</body>
-
-<script src="js/app.js"></script>
-</body>
-</html>
+<!-- GAMBLE POP-UP -->
+<div id="gamble-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <h2 class="modal-title">High Stakes</h2>
+        <p>
+            Do you want to gamble all <br>
+            <span id="gamble-amount">0</span> <br>
+            points on the next spin?
+        </p>
+        
+        <div class="modal-buttons">
+            <button id="btn-no" class="btn btn-cancel">NO</button>
+            <button id="btn-yes" class="btn btn-confirm">YES</button>
+        </div>
+    </div>
+</div>
 
     <script src="js/app.js"></script>
 </body>
