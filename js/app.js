@@ -409,35 +409,32 @@ function resolveFlip(isHeads) {
 }
 // --- GAMBLE MODAL LOGIC ---
 
-// 1. Open Modal on Score Click
-scoreDisplayContainer.addEventListener('click', (e) => {
-    // Prevent opening if flipping, if score is 0, or if already decided to gamble
-    if (isFlipping || totalScore <= 0 || isGambling) return;
-    
-    // Update text
-    gambleAmountText.textContent = totalScore.toLocaleString();
-    
-    // Show Modal
+// 2. The Trigger: Click Score -> Open Modal
+scoreDisplay.addEventListener('click', (e) => {
+    // Don't allow gambling if score is 0 or if already flipping
+    if (totalScore <= 0 || isFlipping) return;
+
+    // Update the text inside the pop-up to match current score
+    gambleAmountSpan.textContent = totalScore.toLocaleString();
+
+    // Show the modal
     modal.classList.remove('hidden');
 });
 
-// 2. Handle NO
+// 3. Button: NO -> Close Modal
 btnNo.addEventListener('click', () => {
     modal.classList.add('hidden');
     isGambling = false;
 });
 
-// 3. Handle YES
+// 4. Button: YES -> Set Flag and Close
 btnYes.addEventListener('click', () => {
     modal.classList.add('hidden');
     isGambling = true;
     
-    // Add visual cue that stakes are high
-    scoreDisplayContainer.classList.add('gambling');
-    
-    // Optional: Play a sound effect here if you have one
+    // Optional: Visual indicator that gambling is active
+    scoreElement.style.color = "#f1fa8c"; // Turn score Gold
 });
-
 
 // Interaction
 sceneElement.addEventListener('mousedown', () => {
