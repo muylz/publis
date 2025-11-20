@@ -68,53 +68,47 @@ function playFlipSound() {
     if (!audioCtx) return;
     const t = audioCtx.currentTime;
 
-    // 1. The "Thock" Body (Deep, woody/plastic impact)
+    // 1. The "Thock" Body (Mid-range wood block sound)
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     const filter = audioCtx.createBiquadFilter();
 
-    osc.type = 'triangle'; // Triangle wave creates a hollow, woody sound
-    // Pitch Sweep: Starts at 300Hz (Low Mid) and drops quickly to 60Hz (Bass)
-    // This removes the "Laser" pew-pew effect which comes from high frequencies
-    osc.frequency.setValueAtTime(300, t); 
-    osc.frequency.exponentialRampToValueAtTime(60, t + 0.1); 
-    
-    // Lowpass Filter: This makes it "Milky" by cutting off the buzz
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(800, t); // Start muffled
-    filter.frequency.linearRampToValueAtTime(300, t + 0.1); // Get more muffled
+    osc.type = 'triangle'; 
+    // Start at 600Hz (Mid) and drop to 150Hz. 
+    // This removes the "Kick Drum" sub-bass frequencies.
+    osc.frequency.setValueAtTime(600, t);
+    osc.frequency.exponentialRampToValueAtTime(150, t + 0.08);
 
-    // Envelope: Fast attack, short sustain
+    // Lowpass Filter: Keeps it "Milky"/Soft
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1500, t);
+    filter.frequency.linearRampToValueAtTime(500, t + 0.08);
+
+    // Envelope: Very fast attack, super short decay (The "Click")
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.8, t + 0.005); // Instant hit
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15); // Short tail
+    gain.gain.linearRampToValueAtTime(0.5, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08); 
 
     osc.connect(filter).connect(gain).connect(audioCtx.destination);
     osc.start(t);
-    osc.stop(t + 0.15);
+    osc.stop(t + 0.1);
 
-    // 2. The Texture (Filtered Noise for the "Click")
-    // Instead of a sine wave "ping", we use noise to simulate physical friction
-    const bufferSize = audioCtx.sampleRate * 0.1; 
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1; // White noise
-    }
+    // 2. The "Snap" (Tactile feel)
+    // A tiny burst of Square wave gives it that mechanical switch feel
+    const snapOsc = audioCtx.createOscillator();
+    const snapGain = audioCtx.createGain();
+    const snapFilter = audioCtx.createBiquadFilter();
 
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-    const noiseGain = audioCtx.createGain();
-    const noiseFilter = audioCtx.createBiquadFilter();
+    snapOsc.type = 'square';
+    snapFilter.type = 'bandpass';
+    snapFilter.frequency.value = 2000; // High snap
 
-    noiseFilter.type = 'lowpass';
-    noiseFilter.frequency.value = 1200; // Cut the hiss, keep the "thud"
+    snapGain.gain.setValueAtTime(0.05, t); // Very quiet
+    snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02); // Instant stop
 
-    noiseGain.gain.setValueAtTime(0.3, t);
-    noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.05); // Very short burst
-
-    noise.connect(noiseFilter).connect(noiseGain).connect(audioCtx.destination);
-    noise.start(t);
+    snapOsc.connect(snapFilter).connect(snapGain).connect(audioCtx.destination);
+    snapOsc.start(t);
+    snapOsc.stop(t + 0.03);
 }
 
 function playWinSound(streakCount) {
@@ -250,7 +244,7 @@ function flipCoin() {
     }
 
     currentRotation = target;
-    localStorage.setItem('goodluck_rotation', currentRotation); // Save rotation
+    localStorage.setItem('goodluck_rotation', currentRotation);
 
     coinElement.style.transition = 'transform 2.5s cubic-bezier(0.15, 0, 0.10, 1)';
     coinElement.style.transform = `rotateX(${currentRotation}deg)`;
@@ -278,10 +272,8 @@ function resolveFlip(isHeads) {
             localStorage.setItem('goodluck_best', best);
         }
         
-        // 1. Update Text
         streakElement.textContent = streak;
-        scoreElement.textContent = totalScore.toLocaleString();
-
+        
         // 2. Apply Green Color & Animation to BOTH
         streakElement.style.color = "var(--green)";
         scoreElement.style.color = "var(--green)";
