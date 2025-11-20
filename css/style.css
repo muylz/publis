@@ -1,5 +1,4 @@
 :root {
-    /* Dracula Theme Colors */
     --bg-center: #383447; 
     --bg-edge: #181621;   
     --text-color: #f8f8f2;
@@ -39,7 +38,7 @@ body {
     touch-action: manipulation;
 }
 
-/* TOP UI */
+/* UI Layout */
 .ui-container {
     display: flex;
     flex-direction: column;
@@ -51,8 +50,9 @@ body {
     flex-shrink: 0;
 }
 
+/* LOGO STYLES */
 .logo-container {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.25)); 
     display: flex;
     justify-content: center; 
@@ -84,15 +84,25 @@ body {
     text-align: center;
 }
 
+/* SHARED COUNTER STYLES (Unified Animation Physics) */
+#streak-counter, #score-counter {
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    text-align: center;
+    /* Both animate color and scale exactly the same way */
+    transition: color 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-variant-numeric: tabular-nums;
+}
+
 #streak-counter {
     font-size: 7rem;
-    font-weight: 900;
     line-height: 0.9;
-    color: #fff;
-    text-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    font-variant-numeric: tabular-nums;
-    text-align: center;
-    transition: color 0.2s ease; 
+}
+
+#score-counter {
+    font-size: 2.5rem;
+    margin-top: 5px;
 }
 
 .best-score {
@@ -119,21 +129,6 @@ body {
     flex-direction: column;
     align-items: center;
 }
-
-/* --- FIXED SCORE STYLING --- */
-#score-counter {
-    font-size: 2.5rem; /* Made Bigger */
-    font-weight: 900;
-    color: #ffffff; /* Changed to White */
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* White Glow */
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    margin-top: 5px;
-}
-
-.score-bump {
-    transform: scale(1.3); /* Slight pop animation */
-}
-/* --------------------------- */
 
 .odds-container {
     font-size: 0.9rem;

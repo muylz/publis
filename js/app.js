@@ -36,17 +36,14 @@ function buildCoin() {
         const currentZ = startZ + (i * THICKNESS_SPREAD);
         
         if (i === 0) {
-            // Back Face (Tails)
             layer.className = 'layer back';
             layer.appendChild(tailsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px) rotateX(180deg)`;
         } else if (i === LAYERS - 1) {
-            // Front Face (Heads)
             layer.className = 'layer front';
             layer.appendChild(headsTemplate.content.cloneNode(true));
             layer.style.transform = `translateZ(${currentZ}px)`;
         } else {
-            // Edge
             layer.className = 'layer edge';
             layer.style.transform = `translateZ(${currentZ}px)`;
         }
@@ -182,23 +179,10 @@ function updateOdds(currentStreak) {
     oddsElement.textContent = denominator.toLocaleString();
 }
 
-// --- SCORE LOGIC (FIXED) ---
+// --- SCORE LOGIC ---
 function addScore(currentStreak) {
     const points = Math.pow(2, currentStreak);
     totalScore += points;
-    
-    scoreElement.textContent = totalScore.toLocaleString();
-    
-    // Trigger Pop Animation
-    scoreElement.classList.remove('score-bump');
-    void scoreElement.offsetWidth; // Force reflow
-    scoreElement.classList.add('score-bump');
-    
-    // Fix: Remove the class after 200ms so it shrinks back down
-    setTimeout(() => {
-        scoreElement.classList.remove('score-bump');
-    }, 200);
-    
     localStorage.setItem('goodluck_score', totalScore);
 }
 
@@ -207,7 +191,9 @@ function flipCoin() {
     initAudio();
     isFlipping = true;
     
+    // Remove animations instantly when flip starts
     streakElement.classList.remove('pop-anim');
+    scoreElement.classList.remove('pop-anim');
     document.body.classList.remove('shake-anim');
 
     const isHeads = Math.random() > 0.5;
@@ -246,6 +232,7 @@ function resolveFlip(isHeads) {
         streak++;
         localStorage.setItem('goodluck_streak', streak); 
 
+        // Update Score Data
         addScore(streak);
 
         if (streak > best) {
@@ -254,13 +241,28 @@ function resolveFlip(isHeads) {
             localStorage.setItem('goodluck_best', best);
         }
         
+        // 1. Update Text
         streakElement.textContent = streak;
+        scoreElement.textContent = totalScore.toLocaleString();
+
+        // 2. Apply Green Color & Animation to BOTH
         streakElement.style.color = "var(--green)";
+        scoreElement.style.color = "var(--green)";
+        
         streakElement.classList.add('pop-anim');
+        scoreElement.classList.add('pop-anim');
+        
         playWinSound(streak);
         createParticles(cx, cy, 'var(--green)');
 
-        setTimeout(() => streakElement.style.color = "#fff", 600);
+        // 3. Reset BOTH to white after animation
+        setTimeout(() => {
+            streakElement.style.color = "#fff";
+            scoreElement.style.color = "#fff";
+            
+            streakElement.classList.remove('pop-anim');
+            scoreElement.classList.remove('pop-anim');
+        }, 600);
 
     } else {
         streak = 0;
@@ -268,7 +270,9 @@ function resolveFlip(isHeads) {
 
         streakElement.textContent = 0;
         
+        // Only Streak goes red on loss
         streakElement.style.color = "var(--red)";
+        
         document.body.classList.add('shake-anim');
         playLoseSound();
         createParticles(cx, cy, 'var(--red)');
